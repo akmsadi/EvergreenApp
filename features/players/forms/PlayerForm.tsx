@@ -3,7 +3,7 @@ import { Alert, ScrollView } from "react-native";
 import { Switch, Text, TextInput } from "react-native-paper";
 
 import AppButton from "../../../components/AppButton";
-import SelectField from "../../../components/SelectField";
+import AppSelect from "../../../components/AppSelect";
 import { battingStyles, bowlingStyles } from "../../../constants/playerOptions";
 import { Player } from "../types";
 
@@ -93,7 +93,7 @@ export default function PlayerForm({ initialValues, onSubmit }: Props) {
                 style={{ marginTop: 12 }}
             />
 
-            <SelectField
+            <AppSelect
                 label='Batting Style'
                 value={battingStyle}
                 options={battingStyles.map((style) => ({
@@ -103,7 +103,7 @@ export default function PlayerForm({ initialValues, onSubmit }: Props) {
                 onChange={(value) => setBattingStyle(value as typeof battingStyle)}
             />
 
-            <SelectField
+            <AppSelect
                 label='Bowling Style'
                 value={bowlingStyle}
                 options={bowlingStyles.map((style) => ({

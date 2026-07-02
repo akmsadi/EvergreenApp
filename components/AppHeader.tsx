@@ -1,13 +1,70 @@
-import { Appbar } from "react-native-paper";
+import { Colors } from "@/constants/colors";
+import { Spacing } from "@/constants/spacing";
+import { useRouter } from "expo-router";
+import { StyleSheet, View } from "react-native";
+import { IconButton, Text } from "react-native-paper";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-interface Props {
+interface AppHeaderProps {
     title: string;
+    subtitle?: string;
+    showBack?: boolean;
+    rightIcon?: string;
+    onRightPress?: () => void;
 }
 
-export default function AppHeader({ title }: Props) {
+export default function AppHeader({ title, subtitle, showBack = false, rightIcon, onRightPress }: AppHeaderProps) {
+    const router = useRouter();
+
     return (
-        <Appbar.Header>
-            <Appbar.Content title={title} />
-        </Appbar.Header>
+        <SafeAreaView edges={["top"]} style={styles.safeArea}>
+            <View style={styles.container}>
+                <View style={styles.left}>
+                    {showBack && <IconButton icon='arrow-left' size={22} onPress={() => router.back()} />}
+
+                    <View>
+                        <Text variant='headlineSmall' style={styles.title}>
+                            {title}
+                        </Text>
+
+                        {subtitle && (
+                            <Text variant='bodyMedium' style={styles.subtitle}>
+                                {subtitle}
+                            </Text>
+                        )}
+                    </View>
+                </View>
+
+                {rightIcon && <IconButton icon={rightIcon} mode='contained' onPress={onRightPress} />}
+            </View>
+        </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    safeArea: {
+        backgroundColor: Colors.background, // or your theme background
+        marginBottom: Spacing.defaultSpace,
+    },
+
+    container: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: Spacing.defaultSpace,
+    },
+
+    left: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+
+    title: {
+        //
+    },
+
+    subtitle: {
+        opacity: 0.6,
+        marginTop: 2,
+    },
+});

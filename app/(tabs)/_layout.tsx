@@ -27,14 +27,6 @@ export default function TabLayout() {
                     tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name='account-group' color={color} size={size} />,
                 }}
             />
-
-            <Tabs.Screen
-                name='settings'
-                options={{
-                    title: "Settings",
-                    tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name='cog' color={color} size={size} />,
-                }}
-            />
         </Tabs>
     );
 }

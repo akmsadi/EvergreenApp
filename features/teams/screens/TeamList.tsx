@@ -22,7 +22,7 @@ export default function TeamList() {
                 contentContainerStyle={{
                     padding: 16,
                 }}
-                renderItem={({ item }) => <TeamCard team={item} playerCount={0} onPress={() => router.push("/teams/edit")} />}
+                renderItem={({ item }) => <TeamCard team={item} playerCount={0} onPress={() => router.push(`/teams/${item.id}`)} />}
             />
 
             <FAB

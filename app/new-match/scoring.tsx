@@ -40,6 +40,36 @@ export default function Scoring() {
         });
     }
 
+    function addWicket() {
+        addBall({
+            id: Date.now(),
+
+            matchId: 1,
+
+            innings: 1,
+
+            over: 0,
+
+            ball: 1,
+
+            batsmanId: 1,
+
+            bowlerId: 1,
+
+            runs: 0,
+
+            extraRuns: 0,
+
+            ballType: "NORMAL",
+
+            isWicket: true,
+
+            strikerAfterBall: 1,
+
+            nonStrikerAfterBall: 2,
+        });
+    }
+
     const undoBall = useScoringStore((state) => state.undoBall);
 
     return (
@@ -79,6 +109,7 @@ export default function Scoring() {
                             width: "30%",
                             marginBottom: 10,
                         }}
+                        onPress={() => addRun(run)}
                     >
                         {run}
                     </Button>
@@ -88,7 +119,7 @@ export default function Scoring() {
                 Undo
             </Button>
 
-            <Button mode='contained' buttonColor='#d32f2f'>
+            <Button mode='contained' buttonColor='#d32f2f' onPress={addWicket}>
                 WICKET
             </Button>
         </View>
