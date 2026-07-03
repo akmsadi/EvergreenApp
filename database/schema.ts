@@ -1,3 +1,21 @@
+export const CREATE_USERS_TABLE = `
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY,
+
+    username TEXT NOT NULL,
+    email TEXT,
+
+    access_token TEXT,
+
+    is_active INTEGER DEFAULT 1,
+
+    created_at TEXT,
+    updated_at TEXT,
+
+    last_login_at TEXT
+);
+`;
+
 export const CREATE_MATCHS_TABLE = `
 CREATE TABLE IF NOT EXISTS matches (
     id INTEGER PRIMARY KEY,

@@ -11,9 +11,7 @@ function PlayerCard({ player }: { player: PlayerModel }) {
                 <Text style={styles.playerName}>{player.name}</Text>
                 <Text style={styles.playerStatus}>{player.status}</Text>
             </View>
-
             <Text style={styles.playerMeta}>{player.organization || "No organization"}</Text>
-            <Text style={styles.playerMeta}>{player.email || player.phone || "No contact info"}</Text>
         </View>
     );
 }
@@ -78,6 +76,11 @@ const styles = StyleSheet.create({
         color: "#1f7a8c",
         fontSize: 12,
         fontWeight: "700",
+        borderWidth: 1,
+        borderColor: "#1f7a8c",
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 8,
     },
 
     playerMeta: {

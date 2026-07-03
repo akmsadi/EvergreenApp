@@ -45,7 +45,7 @@ class SyncService {
     }
 
     /**
-     * Placeholder
+     * Download players from server and save to SQLite
      */
     async syncPlayers(): Promise<number> {
         const players = await ApiService.get<PlayerModel[]>("/players");

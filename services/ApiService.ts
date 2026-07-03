@@ -13,6 +13,19 @@ class ApiService {
         return (json && typeof json === "object" && "data" in json ? json.data : json) as T;
     }
 
+    async login<T = unknown>(username: string, password: string): Promise<T> {
+        const response = await fetch(`${Config.API_URL}/login`, {
+            method: "POST",
+            headers: this.getHeaders(),
+            body: JSON.stringify({ username, password }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data?.message || `HTTP ${response.status}`);
+        }
+        return this.unwrap<T>(data);
+    }
+
     async get<T>(endpoint: string): Promise<T> {
         const response = await fetch(`${Config.API_URL}${endpoint}`, {
             method: "GET",

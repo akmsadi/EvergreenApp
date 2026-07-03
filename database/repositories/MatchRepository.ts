@@ -76,6 +76,10 @@ class MatchRepository {
     deleteAll() {
         db.runSync("DELETE FROM matches");
     }
+
+    delete(id: number) {
+        db.runSync("DELETE FROM matches WHERE id = ?", [id]);
+    }
 }
 
 export default new MatchRepository();
