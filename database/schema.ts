@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS matches (
     updated_at TEXT,
     deleted_at TEXT,
 
+    from_admin INTEGER NOT NULL DEFAULT 1,
     synced_at TEXT,
     dirty INTEGER DEFAULT 0
 );
@@ -64,5 +65,28 @@ CREATE TABLE IF NOT EXISTS players (
     total_expense TEXT NOT NULL,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
+);
+`;
+
+export const CREATE_VENUES_TABLE = `
+CREATE TABLE IF NOT EXISTS venues (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    created_at TEXT,
+    updated_at TEXT,
+    deleted_at TEXT,
+    synced_at TEXT
+);
+`;
+
+export const CREATE_MATCH_PLAYERS_TABLE = `
+CREATE TABLE IF NOT EXISTS match_players (
+    match_id INTEGER NOT NULL,
+    player_id INTEGER NOT NULL,
+    team TEXT NOT NULL,
+    is_captain INTEGER DEFAULT 0,
+    created_at TEXT,
+    updated_at TEXT,
+    PRIMARY KEY (match_id, player_id, team)
 );
 `;

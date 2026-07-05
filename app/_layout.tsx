@@ -3,8 +3,11 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { PaperProvider } from "react-native-paper";
+import { enGB, registerTranslation } from "react-native-paper-dates";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { theme } from "../theme";
+
+registerTranslation("en-GB", enGB);
 
 SplashScreen.preventAutoHideAsync();
 

@@ -26,6 +26,7 @@ export default function DashboardCard({ title, icon, pendingSync = 0, onPress, o
                         styles.iconCircle,
                         {
                             backgroundColor: Colors.white,
+                            display: "none",
                         },
                     ]}
                 >
@@ -63,7 +64,6 @@ const styles = StyleSheet.create({
 
     content: {
         alignItems: "center",
-        minHeight: 175,
         justifyContent: "space-between",
     },
 

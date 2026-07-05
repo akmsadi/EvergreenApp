@@ -1,7 +1,9 @@
 import { MatchModel } from "@/database/models/MatchModel";
 import { PlayerModel } from "@/database/models/PlayerModel";
+import { VenueModel } from "@/database/models/VenueModel";
 import MatchRepository from "@/database/repositories/MatchRepository";
 import PlayerRepository from "@/database/repositories/PlayerRepository";
+import VenueRepository from "@/database/repositories/VenueRepository";
 import ApiService from "./ApiService";
 
 class SyncService {
@@ -31,6 +33,27 @@ class SyncService {
                 format_overs: Number(match.format_overs),
                 venue_id: match.venue_id ? Number(match.venue_id) : null,
                 synced_at: new Date().toISOString(),
+                from_admin: 1,
+                dirty: 0,
+            }))
+        );
+        return matches.length;
+    }
+
+    /**
+     * Download matches from server and save to SQLite
+     */
+    async syncScheduledMatches(): Promise<number> {
+        const matches = await ApiService.get<MatchModel[]>("/matches/scheduled");
+
+        MatchRepository.saveMany(
+            matches.map(match => ({
+                ...match,
+                id: Number(match.id),
+                format_overs: Number(match.format_overs),
+                venue_id: match.venue_id ? Number(match.venue_id) : null,
+                synced_at: new Date().toISOString(),
+                from_admin: 1,
                 dirty: 0,
             }))
         );
@@ -60,6 +83,20 @@ class SyncService {
             }))
         );
         return players.length;
+    }
+
+    /**
+     * Download venues from server and save to SQLite
+     */
+    async syncVenues(): Promise<number> {
+        const venues = await ApiService.get<VenueModel[]>("/venues");
+        VenueRepository.saveMany(
+            venues.map(venue => ({
+                ...venue,
+                id: Number(venue.id),
+            }))
+        );
+        return venues.length;
     }
 }
 

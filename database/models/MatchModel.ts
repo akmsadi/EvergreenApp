@@ -26,7 +26,7 @@ export interface MatchModel {
     updated_at: string | null;
     deleted_at: string | null;
 
+    from_admin: number;
     synced_at: string | null;
-
     dirty: number;
 }

@@ -3,6 +3,19 @@ import { MatchModel } from "../models/MatchModel";
 
 class MatchRepository {
 
+    find(id: number): MatchModel | null {
+        return (
+            db.getFirstSync(
+                `
+            SELECT *
+            FROM matches
+            WHERE id = ?
+            `,
+                [id]
+            ) as MatchModel | null
+        );
+    }
+
     save(match: MatchModel) {
 
         db.runSync(
@@ -26,11 +39,12 @@ class MatchRepository {
                 created_at,
                 updated_at,
                 deleted_at,
+                from_admin,
                 synced_at,
                 dirty
             )
             VALUES
-            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `,
             [
                 match.id,
@@ -50,6 +64,7 @@ class MatchRepository {
                 match.created_at,
                 match.updated_at,
                 match.deleted_at,
+                match.from_admin,
                 match.synced_at,
                 match.dirty,
             ]
@@ -65,6 +80,18 @@ class MatchRepository {
     getAll(): MatchModel[] {
         return db.getAllSync(
             "SELECT * FROM matches ORDER BY scheduled_at DESC"
+        ) as MatchModel[];
+    }
+
+    getByStatus(status: string): MatchModel[] {
+        return db.getAllSync(
+            `
+        SELECT *
+        FROM matches
+        WHERE match_status = ?
+        ORDER BY scheduled_at
+        `,
+            [status]
         ) as MatchModel[];
     }
 

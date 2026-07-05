@@ -23,15 +23,17 @@ function MatchCard({ match }: { match: MatchModel }) {
     return (
         <View style={styles.item}>
             <Text style={styles.matchTitle}>{`${match.team_name} vs ${match.opponent_name}`}</Text>
-            <View style={[styles.itemHeader, , { marginTop: 5 }]}>
+            <View style={[styles.itemHeader, { marginTop: 5 }]}>
                 <Text style={styles.matchMeta}>{formatDate(match.scheduled_at)}</Text>
                 <Text style={styles.matchStatus}>{match.match_status}</Text>
             </View>
             <View style={styles.itemHeader}>
                 <Text style={styles.matchMeta}>{match.result_summary || "No result available"}</Text>
-                <Button mode='contained' onPress={() => MatchRepository.delete(match.id)}>
-                    Delete
-                </Button>
+                {!match.from_admin && (
+                    <Button mode='contained' onPress={() => MatchRepository.delete(match.id)}>
+                        Delete
+                    </Button>
+                )}
             </View>
         </View>
     );
