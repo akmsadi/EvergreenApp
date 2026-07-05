@@ -1,5 +1,6 @@
 import db from "../db";
 import { MatchModel } from "../models/MatchModel";
+import MatchPlayerRepository from "./MatchPlayerRepository";
 
 class MatchRepository {
 
@@ -105,7 +106,10 @@ class MatchRepository {
     }
 
     delete(id: number) {
-        db.runSync("DELETE FROM matches WHERE id = ?", [id]);
+        db.withTransactionSync(() => {
+            MatchPlayerRepository.deleteByMatch(id);
+            db.runSync("DELETE FROM matches WHERE id = ?", [id]);
+        });
     }
 }
 

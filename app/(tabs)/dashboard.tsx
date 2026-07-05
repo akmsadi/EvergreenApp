@@ -58,6 +58,20 @@ export default function DashboardScreen() {
         }
     };
 
+    const handleDeleteMatch = (matchId: number) => {
+        Alert.alert("Delete match", "Are you sure you want to delete this match and its player assignments?", [
+            { text: "Cancel", style: "cancel" },
+            {
+                text: "Delete",
+                style: "destructive",
+                onPress: () => {
+                    MatchRepository.delete(matchId);
+                    refreshCounts();
+                },
+            },
+        ]);
+    };
+
     return (
         <View style={styles.container}>
             <AppHeader title='Evergreen Scorer' />
@@ -87,27 +101,18 @@ export default function DashboardScreen() {
                             {/* Row 3 */}
                             <View style={styles.buttonRow}>
                                 <View style={styles.buttonWrapper}>
-                                    <Button mode='contained' icon='play' onPress={() => router.push(`/matches/${match.id}/start`)}>
-                                        Start
-                                    </Button>
-                                </View>
-
-                                <View style={styles.buttonWrapper}>
                                     <Button mode='contained-tonal' icon='pencil' onPress={() => router.push(`/matches/${match.id}/edit`)}>
                                         Edit
                                     </Button>
                                 </View>
-
                                 <View style={styles.buttonWrapper}>
-                                    <Button
-                                        mode='contained-tonal'
-                                        icon='delete'
-                                        buttonColor='#d32f2f'
-                                        onPress={() => {
-                                            // Delete
-                                        }}
-                                    >
+                                    <Button mode='contained-tonal' icon='delete' buttonColor='#d32f2f' onPress={() => handleDeleteMatch(match.id)}>
                                         Delete
+                                    </Button>
+                                </View>
+                                <View style={styles.buttonWrapper}>
+                                    <Button mode='contained' icon='play' onPress={() => router.push(`/matches/${match.id}/start`)}>
+                                        Start
                                     </Button>
                                 </View>
                             </View>

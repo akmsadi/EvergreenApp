@@ -56,7 +56,7 @@ export default function MatchEditor({ initialMatch, onSave, onAddPlayers }: Matc
 
     const selectedVenue = useMemo(() => {
         return VenueRepository.getAll().find((v) => v.id === venueId);
-    }, [venueId, venueList]);
+    }, [venueId]);
 
     const loadVenues = () => {
         setVenueList(
@@ -207,7 +207,7 @@ export default function MatchEditor({ initialMatch, onSave, onAddPlayers }: Matc
 
 const styles = StyleSheet.create({
     container: {
-        padding: Spacing.defaultSpace,
+        paddingHorizontal: Spacing.defaultSpace,
         gap: Spacing.defaultSpace,
     },
 

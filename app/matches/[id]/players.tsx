@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
-import { Button, Checkbox, SegmentedButtons, Text, TextInput } from "react-native-paper";
+import { Button, IconButton, SegmentedButtons, Text, TextInput } from "react-native-paper";
 import { Dropdown } from "react-native-paper-dropdown";
 
 import AppHeader from "@/components/AppHeader";
@@ -126,12 +126,12 @@ export default function MatchPlayersScreen() {
 
     return (
         <View style={styles.container}>
-            <AppHeader title='Match Players' subtitle={id ? `Match ${id}` : "Select players for both teams"} showBack />
+            <AppHeader title='Match Players' showBack />
 
             <View style={styles.content}>
                 <View style={styles.contentContainer}>
                     <View style={styles.matchupHeader}>
-                        <Text variant='headlineSmall' style={styles.matchupTitle}>
+                        <Text style={styles.matchupTitle}>
                             {teamATitle} VS {teamBTitle}
                         </Text>
                     </View>
@@ -143,7 +143,6 @@ export default function MatchPlayersScreen() {
                             { value: "teamA", label: teamATitle },
                             { value: "teamB", label: teamBTitle },
                         ]}
-                        style={styles.teamTabs}
                     />
 
                     {activeTeam === "teamA" ? (
@@ -242,14 +241,14 @@ function TeamSelectionPanel({ title, count, players, selectedIds, hiddenPlayerId
 
                         return (
                             <View key={player.id} style={styles.playerRow}>
-                                <View style={styles.checkboxWrapper}>
-                                    <Checkbox
-                                        status={checked ? "checked" : "unchecked"}
-                                        onPress={() => handleToggle(player.id)}
-                                        color={Colors.primary}
-                                        uncheckedColor={Colors.border}
-                                    />
-                                </View>
+                                <IconButton
+                                    icon={checked ? "checkbox-marked" : "checkbox-blank-outline"}
+                                    size={24}
+                                    onPress={() => handleToggle(player.id)}
+                                    iconColor={checked ? Colors.primary : Colors.border}
+                                    style={styles.checkboxWrapper}
+                                    accessibilityLabel={`Select ${player.name}`}
+                                />
 
                                 <View style={styles.playerInfo}>
                                     <View style={styles.playerNameRow}>
@@ -271,7 +270,7 @@ function TeamSelectionPanel({ title, count, players, selectedIds, hiddenPlayerId
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.background,
+        backgroundColor: Colors.white,
     },
 
     content: {
@@ -280,25 +279,22 @@ const styles = StyleSheet.create({
 
     contentContainer: {
         flex: 1,
-        padding: Spacing.defaultSpace,
+        paddingHorizontal: Spacing.defaultSpace,
         gap: Spacing.defaultSpace,
     },
 
     contentBody: {
         flex: 1,
-        gap: Spacing.defaultSpace,
+        gap: 8,
     },
 
     matchupHeader: {
         alignItems: "center",
         justifyContent: "center",
-        paddingBottom: 4,
     },
 
     matchupTitle: {
-        fontWeight: "700",
-        color: Colors.primary,
-        textAlign: "center",
+        fontSize: 18,
     },
 
     helperText: {
@@ -309,8 +305,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: Colors.white,
         borderRadius: 16,
-        padding: 12,
-        gap: 10,
+        gap: 5,
     },
 
     sectionHeader: {
@@ -333,18 +328,17 @@ const styles = StyleSheet.create({
     },
 
     searchInput: {
-        marginBottom: 4,
-    },
-
-    teamTabs: {
-        marginBottom: 4,
+        marginBottom: 8,
+        fontSize: 14,
+        backgroundColor: Colors.white,
     },
 
     playerList: {
         flex: 1,
         borderWidth: 1,
-        borderColor: Colors.border,
-        borderRadius: 12,
+        borderColor: Colors.darkGray,
+        borderRadius: 8,
+        padding: 2,
     },
 
     playerListContent: {
@@ -354,22 +348,16 @@ const styles = StyleSheet.create({
     playerRow: {
         flexDirection: "row",
         alignItems: "center",
-        paddingHorizontal: 8,
-        paddingVertical: 6,
     },
 
     checkboxWrapper: {
-        marginRight: 6,
-        borderWidth: 1,
-        borderColor: Colors.primary,
-        borderRadius: 50,
-        justifyContent: "center",
-        alignItems: "center",
+        marginRight: 4,
+        padding: 0,
+        margin: 0,
     },
 
     playerInfo: {
         flex: 1,
-        marginLeft: 4,
     },
 
     playerNameRow: {
@@ -380,7 +368,7 @@ const styles = StyleSheet.create({
     },
 
     playerName: {
-        fontWeight: "600",
+        // fontWeight: "600",
     },
 
     playerMeta: {
@@ -390,7 +378,7 @@ const styles = StyleSheet.create({
 
     emptyText: {
         color: Colors.textSecondary,
-        padding: 16,
+        padding: 0,
     },
 
     captainSection: {
@@ -401,7 +389,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.defaultSpace,
         paddingTop: 8,
         paddingBottom: Spacing.defaultSpace,
-        backgroundColor: Colors.background,
     },
 
     saveButton: {

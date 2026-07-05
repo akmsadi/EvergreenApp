@@ -13,5 +13,8 @@ export const Colors = {
     textSecondary: "#607D8B",
 
     border: "#E8F5E9",
+    gray: "#EEE",
+    lightGray: "#F5F5F5",
+    darkGray: "#BDBDBD",
 
 };

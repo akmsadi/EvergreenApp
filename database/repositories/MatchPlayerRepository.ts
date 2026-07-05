@@ -29,6 +29,10 @@ class MatchPlayerRepository {
         );
     }
 
+    deleteByMatch(matchId: number) {
+        db.runSync(`DELETE FROM match_players WHERE match_id = ?`, [matchId]);
+    }
+
     getByMatch(matchId: number): MatchPlayerModel[] {
         return db.getAllSync(
             `

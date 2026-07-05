@@ -1,7 +1,8 @@
 import { Colors } from "@/constants/colors";
 import { Spacing } from "@/constants/spacing";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { IconButton, Text } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -20,7 +21,20 @@ export default function AppHeader({ title, subtitle, showBack = false, rightIcon
         <SafeAreaView edges={["top"]} style={styles.safeArea}>
             <View style={styles.container}>
                 <View style={styles.left}>
-                    {showBack && <IconButton icon='arrow-left' size={22} onPress={() => router.back()} />}
+                    {showBack && (
+                        <Pressable
+                            onPress={() => router.back()}
+                            style={{
+                                width: 40,
+                                height: 40,
+                                justifyContent: "center",
+                                alignItems: "center",
+                                marginRight: 8,
+                            }}
+                        >
+                            <MaterialCommunityIcons name='arrow-left' size={24} color={Colors.text} />
+                        </Pressable>
+                    )}
 
                     <View>
                         <Text variant='headlineSmall' style={styles.title}>
@@ -48,10 +62,11 @@ const styles = StyleSheet.create({
     },
 
     container: {
+        height: 56,
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        padding: Spacing.defaultSpace,
+        paddingHorizontal: Spacing.defaultSpace,
     },
 
     left: {
@@ -60,7 +75,7 @@ const styles = StyleSheet.create({
     },
 
     title: {
-        //
+        fontSize: 22,
     },
 
     subtitle: {
