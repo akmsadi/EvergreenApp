@@ -54,7 +54,7 @@ class MatchPlayerRepository {
             ORDER BY player_id
             `,
             [matchId, team],
-        ) as Array<{ player_id: number }>;
+        ) as { player_id: number }[];
 
         return rows.map((row) => Number(row.player_id));
     }
@@ -84,6 +84,61 @@ class MatchPlayerRepository {
 
     clear(matchId: number) {
         db.runSync(`DELETE FROM match_players WHERE match_id = ?`, [matchId]);
+    }
+
+    findByBattingPosition(
+        matchId: number,
+        team: string,
+        battingPosition: number
+    ): MatchPlayerModel | null {
+
+        const row = db.getFirstSync(
+            `
+        SELECT *
+        FROM match_players
+        WHERE
+            match_id = ?
+            AND team = ?
+            AND batting_position = ?
+            LIMIT 1
+        `,
+            [
+                matchId,
+                team,
+                battingPosition
+            ]
+        );
+
+        return row ? row as MatchPlayerModel : null;
+    }
+
+    getRemainingBatsmen(
+        matchId: number,
+        team: "team_a" | "team_b",
+        inningsId: number
+    ): MatchPlayerModel[] {
+
+        return db.getAllSync(
+            `
+        SELECT *
+        FROM match_players
+        WHERE
+            match_id = ?
+            AND team = ?
+            AND player_id NOT IN (
+                SELECT player_id
+                FROM innings_batting
+                WHERE innings_id = ?
+            )
+        ORDER BY batting_position
+        `,
+            [
+                matchId,
+                team,
+                inningsId
+            ]
+        ) as MatchPlayerModel[];
+
     }
 }
 

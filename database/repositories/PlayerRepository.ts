@@ -48,6 +48,20 @@ class PlayerRepository {
         });
     }
 
+    find(id: number): PlayerModel | null {
+
+        const row = db.getFirstSync(
+            `
+        SELECT *
+        FROM players
+        WHERE id = ?
+        `,
+            [id]
+        ) as PlayerModel | null;
+
+        return row;
+    }
+
     getAll(): PlayerModel[] {
         return db.getAllSync(
             "SELECT * FROM players ORDER BY name ASC"

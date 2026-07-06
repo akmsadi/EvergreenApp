@@ -129,6 +129,9 @@ export default function DashboardScreen() {
 
                     <DashboardCard title={`Players (${playerCount})`} icon='account' onPress={() => router.push("/players")} onSync={syncPlayers} />
                 </View>
+                <Button mode='contained' icon='cloud-download' onPress={() => router.push("/scoring")} style={styles.button}>
+                    Scoring
+                </Button>
                 <View style={[styles.buttonRow, { marginTop: 0 }]}>
                     <View style={styles.buttonWrapper}>
                         <Button mode='contained' icon='cloud-download' onPress={fetchScheduledMatches} style={styles.button}>

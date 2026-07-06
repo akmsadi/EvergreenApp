@@ -111,6 +111,54 @@ class MatchRepository {
             db.runSync("DELETE FROM matches WHERE id = ?", [id]);
         });
     }
+
+    updateToss(
+        matchId: number,
+        tossWinner: "team_a" | "team_b",
+        tossDecision: "bat" | "bowl"
+    ): void {
+
+        db.runSync(
+            `
+        UPDATE matches
+        SET
+            toss_winner = ?,
+            toss_decision = ?,
+            updated_at = ?
+        WHERE id = ?
+        `,
+            [
+                tossWinner,
+                tossDecision,
+                new Date().toISOString(),
+                matchId
+            ]
+        );
+
+    }
+
+    updateResult(match: MatchModel): void {
+
+        db.runSync(
+            `
+        UPDATE matches
+        SET
+            match_status = ?,
+            result_type = ?,
+            result_summary = ?,
+            updated_at = ?
+        WHERE id = ?
+        `,
+            [
+                match.match_status,
+                match.result_type,
+                match.result_summary,
+                new Date().toISOString(),
+                match.id
+            ]
+        );
+
+    }
 }
 
 export default new MatchRepository();
