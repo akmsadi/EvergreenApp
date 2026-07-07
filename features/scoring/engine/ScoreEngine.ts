@@ -42,6 +42,34 @@ class ScoreEngine {
     private playerRepository = PlayerRepository;
     private matchRepository = MatchRepository;
 
+    private getActiveInningsId(): number {
+
+        if (this.currentInningsId !== null) {
+
+            const cached =
+                this.inningsRepository.find(this.currentInningsId);
+
+            if (cached && !cached.is_completed) {
+                return this.currentInningsId;
+            }
+
+            this.currentInningsId = null;
+
+        }
+
+        const latestActiveInnings =
+            this.inningsRepository.findLatestActive();
+
+        if (!latestActiveInnings) {
+            throw new Error("No active innings.");
+        }
+
+        this.currentInningsId = latestActiveInnings.id!;
+
+        return this.currentInningsId;
+
+    }
+
     async createInnings(
         request: CreateInningsRequest
     ): Promise<number> {
@@ -318,16 +346,36 @@ class ScoreEngine {
 
     }
 
+    async resumeMatch(
+        matchId: number
+    ): Promise<boolean> {
+
+        const innings =
+            this.inningsRepository.findCurrent(matchId);
+
+        if (!innings) {
+            return false;
+        }
+
+        const current =
+            this.currentInningsRepository.find(innings.id!);
+
+        if (!current) {
+            throw new Error("Current innings not initialized.");
+        }
+
+        this.currentInningsId = innings.id!;
+
+        return true;
+
+    }
+
     async changeBowler(
         bowlerId: number
     ): Promise<ScoreboardState> {
 
-        if (this.currentInningsId === null) {
-            throw new Error("No active innings.");
-        }
-
         const innings =
-            this.inningsRepository.find(this.currentInningsId);
+            this.inningsRepository.find(this.getActiveInningsId());
 
         if (!innings) {
             throw new Error("Innings not found.");
@@ -382,17 +430,39 @@ class ScoreEngine {
 
     }
 
+    async swapStrike(): Promise<ScoreboardState> {
+
+        const innings =
+            this.inningsRepository.find(this.getActiveInningsId());
+
+        if (!innings) {
+            throw new Error("Innings not found.");
+        }
+
+        const current =
+            this.currentInningsRepository.find(innings.id!);
+
+        if (!current) {
+            throw new Error("Current innings not found.");
+        }
+
+        const temp = current.striker_id;
+        current.striker_id = current.non_striker_id;
+        current.non_striker_id = temp;
+
+        this.currentInningsRepository.update(current);
+
+        return await this.getScoreboard();
+
+    }
+
     async newBatsman(
         playerId: number
     ): Promise<void> {
 
-        if (!this.currentInningsId) {
-            throw new Error("No active innings.");
-        }
-
         const current =
             this.currentInningsRepository.find(
-                this.currentInningsId
+                this.getActiveInningsId()
             );
 
         if (!current) {
@@ -409,11 +479,7 @@ class ScoreEngine {
 
     async scoreBall(event: BallEvent): Promise<ScoreResult> {
 
-        if (this.currentInningsId === null) {
-            throw new Error("No active innings.");
-        }
-
-        const innings = this.inningsRepository.find(this.currentInningsId);
+        const innings = this.inningsRepository.find(this.getActiveInningsId());
 
         if (!innings) {
             throw new Error("Innings not found.");
@@ -432,6 +498,11 @@ class ScoreEngine {
         const legalBall =
             event.extraType !== ExtraType.WIDE &&
             event.extraType !== ExtraType.NO_BALL;
+
+        const countsAsBatsmanBall =
+            event.extraType !== ExtraType.WIDE &&
+            event.extraType !== ExtraType.BYE &&
+            event.extraType !== ExtraType.LEG_BYE;
 
         const runsOffBat =
             event.extraType === ExtraType.BYE ||
@@ -491,7 +562,7 @@ class ScoreEngine {
             throw new Error("Batting record not found.");
         }
 
-        if (legalBall) {
+        if (countsAsBatsmanBall) {
             batting.balls++;
         }
 
@@ -505,7 +576,10 @@ class ScoreEngine {
             batting.sixes++;
         }
 
-        if (event.isWicket) {
+        if (
+            event.isWicket &&
+            event.dismissalType !== DismissalType.RETIRED_HURT
+        ) {
 
             batting.is_out = true;
 
@@ -576,7 +650,10 @@ class ScoreEngine {
             bowling.no_balls += extraRuns;
         }
 
-        if (event.isWicket) {
+        if (
+            event.isWicket &&
+            event.dismissalType !== DismissalType.RETIRED_HURT
+        ) {
             bowling.wickets++;
         }
 
@@ -592,7 +669,10 @@ class ScoreEngine {
 
         innings.extras += extraRuns;
 
-        if (event.isWicket) {
+        if (
+            event.isWicket &&
+            event.dismissalType !== DismissalType.RETIRED_HURT
+        ) {
 
             innings.wickets++;
 
@@ -637,12 +717,8 @@ class ScoreEngine {
 
     async getState() {
 
-        if (this.currentInningsId === null) {
-            throw new Error("No active innings.");
-        }
-
         const innings =
-            this.inningsRepository.find(this.currentInningsId);
+            this.inningsRepository.find(this.getActiveInningsId());
 
         if (!innings) {
             throw new Error("Innings not found.");
@@ -666,12 +742,8 @@ class ScoreEngine {
 
     async undo(): Promise<void> {
 
-        if (this.currentInningsId === null) {
-            throw new Error("No active innings.");
-        }
-
         const innings =
-            this.inningsRepository.find(this.currentInningsId);
+            this.inningsRepository.find(this.getActiveInningsId());
 
         if (!innings) {
             throw new Error("Innings not found.");
@@ -800,12 +872,8 @@ class ScoreEngine {
 
     async getScoreboard(): Promise<ScoreboardState> {
 
-        if (this.currentInningsId === null) {
-            throw new Error("No active innings.");
-        }
-
         const innings =
-            this.inningsRepository.find(this.currentInningsId);
+            this.inningsRepository.find(this.getActiveInningsId());
 
         if (!innings) {
             throw new Error("Innings not found.");
@@ -830,6 +898,10 @@ class ScoreEngine {
         return {
 
             inningsId: innings.id!,
+
+            inningsNumber: innings.innings_number,
+
+            targetRuns: innings.target_runs,
 
             totalRuns: innings.total_runs,
 
@@ -877,11 +949,7 @@ class ScoreEngine {
         playerId: number
     ): Promise<void> {
 
-        if (this.currentInningsId === null) {
-            throw new Error("No active innings.");
-        }
-
-        const innings = this.inningsRepository.find(this.currentInningsId);
+        const innings = this.inningsRepository.find(this.getActiveInningsId());
 
         if (!innings) {
             throw new Error("Innings not found.");
@@ -921,14 +989,157 @@ class ScoreEngine {
 
     }
 
-    isEndOfOver(): boolean {
-
-        if (this.currentInningsId === null) {
-            return false;
-        }
+    async resolveWicket(
+        nextBatsmanId: number,
+        dismissedPlayerId: number,
+        dismissalType: DismissalType,
+        fielderId?: number
+    ): Promise<void> {
 
         const innings =
-            this.inningsRepository.find(this.currentInningsId);
+            this.inningsRepository.find(this.getActiveInningsId());
+
+        if (!innings) {
+            throw new Error("Innings not found.");
+        }
+
+        const current =
+            this.currentInningsRepository.find(innings.id!);
+
+        if (!current) {
+            throw new Error("Current innings not found.");
+        }
+
+        const lastDelivery =
+            this.deliveryRepository.findLast(innings.id!);
+
+        if (!lastDelivery || !lastDelivery.is_wicket) {
+            throw new Error("Last delivery is not a wicket.");
+        }
+
+        this.deliveryRepository.updateWicketSelection(
+            lastDelivery.id!,
+            dismissedPlayerId,
+            dismissalType,
+            fielderId
+        );
+
+        const strikerBatting =
+            this.inningsBattingRepository.find(
+                innings.id!,
+                current.striker_id
+            );
+
+        const dismissedBatting =
+            this.inningsBattingRepository.find(
+                innings.id!,
+                dismissedPlayerId
+            );
+
+        const bowling =
+            this.inningsBowlingRepository.find(
+                innings.id!,
+                lastDelivery.bowler_id
+            );
+
+        if (
+            dismissedPlayerId !== current.striker_id &&
+            strikerBatting
+        ) {
+            strikerBatting.is_out = false;
+            strikerBatting.dismissal_type = undefined;
+            strikerBatting.bowler_id = undefined;
+            strikerBatting.fielder_id = undefined;
+
+            this.inningsBattingRepository.update(
+                strikerBatting
+            );
+        }
+
+        if (dismissedBatting) {
+            dismissedBatting.is_out =
+                dismissalType !== DismissalType.RETIRED_HURT;
+            dismissedBatting.dismissal_type =
+                dismissalType ?? undefined;
+            dismissedBatting.bowler_id =
+                dismissalType === DismissalType.RETIRED_HURT
+                    ? undefined
+                    : lastDelivery.bowler_id;
+            dismissedBatting.fielder_id =
+                dismissalType === DismissalType.RETIRED_HURT
+                    ? undefined
+                    : fielderId ?? undefined;
+
+            this.inningsBattingRepository.update(
+                dismissedBatting
+            );
+        }
+
+        if (
+            dismissalType === DismissalType.RETIRED_HURT &&
+            bowling &&
+            bowling.wickets > 0
+        ) {
+            bowling.wickets--;
+
+            this.inningsBowlingRepository.update(
+                bowling
+            );
+        }
+
+        if (
+            dismissalType === DismissalType.RETIRED_HURT &&
+            innings.wickets > 0
+        ) {
+            innings.wickets--;
+
+            this.inningsRepository.updateScore(
+                innings.id!,
+                innings.total_runs,
+                innings.wickets,
+                innings.legal_balls,
+                innings.extras
+            );
+        }
+
+        this.inningsBattingRepository.save({
+
+            innings_id: innings.id!,
+
+            player_id: nextBatsmanId,
+
+            batting_position: current.next_batsman_position,
+
+            runs: 0,
+
+            balls: 0,
+
+            fours: 0,
+
+            sixes: 0,
+
+            is_out: false
+
+        });
+
+        if (dismissedPlayerId === current.striker_id) {
+            current.striker_id = nextBatsmanId;
+        } else if (dismissedPlayerId === current.non_striker_id) {
+            current.non_striker_id = nextBatsmanId;
+        } else {
+            current.striker_id = nextBatsmanId;
+        }
+
+        current.next_batsman_position++;
+
+        this.currentInningsRepository.update(current);
+
+    }
+
+    isEndOfOver(): boolean {
+
+        const innings =
+            this.inningsRepository.find(this.getActiveInningsId());
 
         if (!innings) {
             return false;
@@ -939,14 +1150,10 @@ class ScoreEngine {
 
     }
 
-    async endInnings(): Promise<void> {
-
-        if (this.currentInningsId === null) {
-            throw new Error("No active innings.");
-        }
+    async endInnings(): Promise<{ inningsNumber: number; matchId: number }> {
 
         const innings =
-            this.inningsRepository.find(this.currentInningsId);
+            this.inningsRepository.find(this.getActiveInningsId());
 
         if (!innings) {
             throw new Error("Innings not found.");
@@ -956,12 +1163,21 @@ class ScoreEngine {
             innings.id!
         );
 
+        return {
+            inningsNumber: innings.innings_number,
+            matchId: innings.match_id
+        };
+
     }
 
     async finishMatch(): Promise<void> {
 
+        if (this.currentInningsId === null) {
+            throw new Error("Second innings not found.");
+        }
+
         const innings =
-            this.inningsRepository.findCurrentMatchLast();
+            this.inningsRepository.find(this.currentInningsId);
 
         if (!innings) {
             throw new Error("Second innings not found.");

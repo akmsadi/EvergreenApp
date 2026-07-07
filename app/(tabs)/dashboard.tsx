@@ -1,5 +1,5 @@
-import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
 import { Button } from "react-native-paper";
 
@@ -9,6 +9,7 @@ import { Spacing } from "@/constants/spacing";
 import { MatchModel } from "@/database/models/MatchModel";
 import MatchRepository from "@/database/repositories/MatchRepository";
 import PlayerRepository from "@/database/repositories/PlayerRepository";
+import ScoreEngine from "@/features/scoring/engine/ScoreEngine";
 import SyncService from "@/services/SyncService";
 import { formatDisplayDate } from "@/utils/Common";
 
@@ -18,15 +19,17 @@ export default function DashboardScreen() {
     const [playerCount, setPlayerCount] = useState<number>(0);
     const [scheduledMatches, setScheduledMatches] = useState<MatchModel[]>([]);
 
-    useEffect(() => {
-        refreshCounts();
-    }, []);
-
-    const refreshCounts = () => {
+    const refreshCounts = useCallback(() => {
         setMatchCount(MatchRepository.getCount());
         setPlayerCount(PlayerRepository.getCount());
         setScheduledMatches(MatchRepository.getByStatus("scheduled"));
-    };
+    }, []);
+
+    useFocusEffect(
+        useCallback(() => {
+            refreshCounts();
+        }, [refreshCounts]),
+    );
 
     const syncMatches = async () => {
         try {
@@ -72,6 +75,21 @@ export default function DashboardScreen() {
         ]);
     };
 
+    const handleStartMatch = async (matchId: number) => {
+        try {
+            const resumed = await ScoreEngine.resumeMatch(matchId);
+
+            if (resumed) {
+                router.push("/scoring");
+                return;
+            }
+
+            router.push(`/matches/${matchId}/start`);
+        } catch (error) {
+            Alert.alert("Unable to start", error instanceof Error ? error.message : "Unknown error");
+        }
+    };
+
     return (
         <View style={styles.container}>
             <AppHeader title='Evergreen Scorer' />
@@ -111,7 +129,7 @@ export default function DashboardScreen() {
                                     </Button>
                                 </View>
                                 <View style={styles.buttonWrapper}>
-                                    <Button mode='contained' icon='play' onPress={() => router.push(`/matches/${match.id}/start`)}>
+                                    <Button mode='contained' icon='play' onPress={() => handleStartMatch(match.id)}>
                                         Start
                                     </Button>
                                 </View>

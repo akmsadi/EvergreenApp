@@ -133,7 +133,7 @@ class InningsRepository {
         SELECT *
         FROM innings
         WHERE match_id = ?
-        AND innings_no = ?
+        AND innings_number = ?
         `,
             [
                 matchId,
@@ -149,6 +149,20 @@ class InningsRepository {
             `
         SELECT *
         FROM innings
+        ORDER BY id DESC
+        LIMIT 1
+        `
+        ) as InningsModel | null;
+
+    }
+
+    findLatestActive(): InningsModel | null {
+
+        return db.getFirstSync(
+            `
+        SELECT *
+        FROM innings
+        WHERE is_completed = 0
         ORDER BY id DESC
         LIMIT 1
         `

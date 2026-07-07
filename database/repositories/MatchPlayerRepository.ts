@@ -99,13 +99,13 @@ class MatchPlayerRepository {
         WHERE
             match_id = ?
             AND team = ?
-            AND batting_position = ?
-            LIMIT 1
+        ORDER BY player_id
+        LIMIT 1 OFFSET ?
         `,
             [
                 matchId,
                 team,
-                battingPosition
+                Math.max(0, battingPosition - 1)
             ]
         );
 
@@ -130,7 +130,7 @@ class MatchPlayerRepository {
                 FROM innings_batting
                 WHERE innings_id = ?
             )
-        ORDER BY batting_position
+        ORDER BY player_id
         `,
             [
                 matchId,

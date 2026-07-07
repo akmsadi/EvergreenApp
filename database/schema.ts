@@ -80,7 +80,6 @@ CREATE TABLE IF NOT EXISTS match_players (
 `;
 
 export const CREATE_INNINGS_TABLE = `
-DROP TABLE IF EXISTS innings;
 CREATE TABLE IF NOT EXISTS innings (
     id INTEGER PRIMARY KEY,
     match_id INTEGER NOT NULL,
@@ -100,7 +99,6 @@ CREATE TABLE IF NOT EXISTS innings (
 `;
 
 export const CREATE_DELIVERIES_TABLE = `
-DROP TABLE IF EXISTS deliveries;
 CREATE TABLE IF NOT EXISTS deliveries (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     innings_id INTEGER NOT NULL,
@@ -123,7 +121,6 @@ CREATE TABLE IF NOT EXISTS deliveries (
 `;
 
 export const CREATE_BATTING_SCORES_TABLE = `
-DROP TABLE IF EXISTS batting_scores;
 CREATE TABLE IF NOT EXISTS batting_scores (
     innings_id INTEGER,
     player_id INTEGER,
@@ -141,7 +138,6 @@ CREATE TABLE IF NOT EXISTS batting_scores (
 `;
 
 export const CREATE_BOWLING_FIGURES_TABLE = `
-DROP TABLE IF EXISTS bowling_figures;
 CREATE TABLE IF NOT EXISTS bowling_figures (
     innings_id INTEGER,
     player_id INTEGER,
@@ -158,7 +154,6 @@ CREATE TABLE IF NOT EXISTS bowling_figures (
 `;
 
 export const CREATE_PARTNERSHIPS_TABLE = `
-DROP TABLE IF EXISTS partnerships;
 CREATE TABLE IF NOT EXISTS partnerships (
     id INTEGER PRIMARY KEY,
     innings_id INTEGER,
@@ -171,7 +166,6 @@ CREATE TABLE IF NOT EXISTS partnerships (
 `;
 
 export const CREATE_FALL_OF_WICKETS_TABLE = `
-DROP TABLE IF EXISTS fall_of_wickets;
 CREATE TABLE IF NOT EXISTS fall_of_wickets (
     id INTEGER PRIMARY KEY,
     innings_id INTEGER,
@@ -183,7 +177,6 @@ CREATE TABLE IF NOT EXISTS fall_of_wickets (
 `;
 
 export const CREATE_CURRENT_INNINGS_TABLE = `
-DROP TABLE IF EXISTS current_innings;
 CREATE TABLE IF NOT EXISTS current_innings (
     innings_id INTEGER PRIMARY KEY,
     striker_id INTEGER NOT NULL,
@@ -195,7 +188,6 @@ CREATE TABLE IF NOT EXISTS current_innings (
 `;
 
 export const CREATE_INNINGS_START_TABLE = `
-DROP TABLE IF EXISTS innings_start;
 CREATE TABLE IF NOT EXISTS innings_start (
     innings_id INTEGER PRIMARY KEY,
     striker_id INTEGER NOT NULL,
@@ -205,42 +197,32 @@ CREATE TABLE IF NOT EXISTS innings_start (
 `;
 
 export const CREATE_INNINGS_BATTING_TABLE = `
-DROP TABLE IF EXISTS innings_batting;
 CREATE TABLE IF NOT EXISTS innings_batting (
     innings_id INTEGER NOT NULL,
     player_id INTEGER NOT NULL,
-
     batting_position INTEGER NOT NULL,
-
     runs INTEGER NOT NULL DEFAULT 0,
     balls INTEGER NOT NULL DEFAULT 0,
-
     fours INTEGER NOT NULL DEFAULT 0,
     sixes INTEGER NOT NULL DEFAULT 0,
-
     is_out INTEGER NOT NULL DEFAULT 0,
     dismissal_type TEXT,
     fielder_id INTEGER,
     bowler_id INTEGER,
-
     PRIMARY KEY (innings_id, player_id)
 );
 `;
 
 export const CREATE_INNINGS_BOWLING_TABLE = `
-DROP TABLE IF EXISTS innings_bowling;
 CREATE TABLE IF NOT EXISTS innings_bowling (
     innings_id INTEGER NOT NULL,
     player_id INTEGER NOT NULL,
-
     balls INTEGER NOT NULL DEFAULT 0,
     maidens INTEGER NOT NULL DEFAULT 0,
     runs INTEGER NOT NULL DEFAULT 0,
     wickets INTEGER NOT NULL DEFAULT 0,
-
     wides INTEGER NOT NULL DEFAULT 0,
     no_balls INTEGER NOT NULL DEFAULT 0,
-
     PRIMARY KEY (innings_id, player_id)
 );
 `;

@@ -39,7 +39,29 @@ class InningsStartRepository {
     find(
         inningsId: number
     ): InningsStartModel | null {
-        return null;
+
+        const row = db.getFirstSync(
+            `
+            SELECT
+                innings_id,
+                striker_id,
+                non_striker_id,
+                bowler_id
+            FROM innings_start
+            WHERE innings_id = ?
+            LIMIT 1
+            `,
+            [inningsId]
+        );
+
+        if (!row) {
+            return null;
+        }
+
+        return {
+            ...(row as Omit<InningsStartModel, "created_at">),
+            created_at: ""
+        };
     }
 
 }

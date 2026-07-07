@@ -3,6 +3,34 @@ import { DeliveryModel } from "../models/DeliveryModel";
 
 class DeliveryRepository {
 
+    private formatCommentary(
+        delivery: DeliveryModel
+    ): string {
+
+        if (delivery.is_wicket) {
+            return "Wk";
+        }
+
+        if (delivery.extra_type === "WD") {
+            return `WD${delivery.extra_runs > 1 ? delivery.extra_runs : ""}`;
+        }
+
+        if (delivery.extra_type === "NB") {
+            return `NB${delivery.runs_off_bat > 0 ? `+${delivery.runs_off_bat}` : ""}`;
+        }
+
+        if (delivery.extra_type === "B") {
+            return `B${delivery.extra_runs}`;
+        }
+
+        if (delivery.extra_type === "LB") {
+            return `LB${delivery.extra_runs}`;
+        }
+
+        return delivery.total_runs.toString();
+
+    }
+
     save(delivery: DeliveryModel): void {
 
         const now = new Date().toISOString();
@@ -101,6 +129,48 @@ class DeliveryRepository {
 
     }
 
+    updateDismissedPlayer(
+        deliveryId: number,
+        dismissedPlayerId: number
+    ): void {
+
+        db.runSync(
+            `
+        UPDATE deliveries
+        SET dismissed_player_id = ?
+        WHERE id = ?
+        `,
+            [dismissedPlayerId, deliveryId]
+        );
+
+    }
+
+    updateWicketSelection(
+        deliveryId: number,
+        dismissedPlayerId: number,
+        dismissalType: string,
+        fielderId?: number
+    ): void {
+
+        db.runSync(
+            `
+        UPDATE deliveries
+        SET
+            dismissed_player_id = ?,
+            dismissal_type = ?,
+            fielder_id = ?
+        WHERE id = ?
+        `,
+            [
+                dismissedPlayerId,
+                dismissalType,
+                fielderId ?? null,
+                deliveryId
+            ]
+        );
+
+    }
+
     findAll(
         inningsId: number
     ): DeliveryModel[] {
@@ -136,27 +206,29 @@ class DeliveryRepository {
             return null;
         }
 
-        if (row.is_wicket) {
-            return "W";
-        }
+        return this.formatCommentary(row);
+    }
 
-        if (row.extra_type === "WD") {
-            return "WD";
-        }
+    findLastBallCommentaries(
+        inningsId: number,
+        limit = 6
+    ): string[] {
 
-        if (row.extra_type === "NB") {
-            return "NB";
-        }
+        const rows = db.getAllSync(
+            `
+        SELECT *
+        FROM deliveries
+        WHERE innings_id = ?
+        ORDER BY id DESC
+        LIMIT ?
+        `,
+            [inningsId, limit]
+        ) as DeliveryModel[];
 
-        if (row.extra_type === "B") {
-            return `B${row.extra_runs}`;
-        }
+        return rows
+            .reverse()
+            .map((row) => this.formatCommentary(row));
 
-        if (row.extra_type === "LB") {
-            return `LB${row.extra_runs}`;
-        }
-
-        return row.total_runs.toString();
     }
 
     findLast(

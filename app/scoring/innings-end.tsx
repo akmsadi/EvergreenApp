@@ -10,10 +10,23 @@ export default function EndInningsScreen() {
     const router = useRouter();
 
     async function confirmEndInnings() {
-        await ScoreEngine.endInnings();
+        const { inningsNumber, matchId } = await ScoreEngine.endInnings();
 
-        // We'll replace this after second innings is implemented.
-        router.replace("/");
+        if (inningsNumber === 1) {
+            router.replace({
+                pathname: "/scoring/second-innings",
+                params: { matchId },
+            });
+
+            return;
+        }
+
+        await ScoreEngine.finishMatch();
+
+        router.replace({
+            pathname: "/scoring/result",
+            params: { matchId },
+        });
     }
 
     return (

@@ -1,4 +1,5 @@
 import { ScoringState } from "../helpers/ScoringState";
+import { rotateStrike, shouldSwapBatsman } from "../helpers/StrikeHelper";
 import { DeliveryModel } from "../models/DeliveryModel";
 import { InningsBattingModel } from "../models/InningsBattingModel";
 import { InningsBowlingModel } from "../models/InningsBowlingModel";
@@ -8,6 +9,8 @@ import DeliveryRepository from "../repositories/DeliveryRepository";
 import InningsBattingRepository from "../repositories/InningsBattingRepository";
 import InningsBowlingRepository from "../repositories/InningsBowlingRepository";
 import InningsRepository from "../repositories/InningsRepository";
+import InningsStartRepository from "../repositories/InningsStartRepository";
+import { DismissalType } from "../types/DismissalType";
 import { ExtraType } from "../types/ExtraType";
 import MatchStateBuilder from "./MatchStateBuilder";
 
@@ -16,6 +19,7 @@ class StateCalculator {
     private inningsRepository = InningsRepository;
     private deliveryRepository = DeliveryRepository;
     private currentInningsRepository = CurrentInningsRepository;
+    private inningsStartRepository = InningsStartRepository;
     private inningsBattingRepository = InningsBattingRepository;
     private inningsBowlingRepository = InningsBowlingRepository;
 
@@ -33,6 +37,9 @@ class StateCalculator {
         // below wipes the table, and rebuilding purely from deliveries would
         // otherwise lose their batting_position/existence entirely.
         const existingBatting = this.inningsBattingRepository.findAll(inningsId);
+        const existingBattingByPlayerId = new Map(
+            existingBatting.map((batting) => [batting.player_id, batting])
+        );
 
         this.inningsBattingRepository.deleteAll(inningsId);
         this.inningsBowlingRepository.deleteAll(inningsId);
@@ -43,28 +50,41 @@ class StateCalculator {
             throw new Error(`Current innings state for innings ${inningsId} not found`);
         }
 
+        const inningsStart =
+            this.inningsStartRepository.find(inningsId);
+
         // Initialize counters
         let runs = 0;
         let extras = 0;
         let wickets = 0;
         let balls = 0;
-        let strikerId = currentState.striker_id;
-        let nonStrikerId = currentState.non_striker_id;
+        let strikerId =
+            inningsStart?.striker_id ?? currentState.striker_id;
+        let nonStrikerId =
+            inningsStart?.non_striker_id ?? currentState.non_striker_id;
 
         // Get all deliveries for this innings
         const deliveries = this.deliveryRepository.findAll(inningsId);
         const battingMap = new Map<number, InningsBattingModel>();
         const bowlingMap = new Map<number, InningsBowlingModel>();
 
-        for (const existing of existingBatting) {
+        const preservedPlayerIds = new Set<number>(
+            [
+                inningsStart?.striker_id,
+                inningsStart?.non_striker_id,
+            ].filter((playerId): playerId is number => typeof playerId === "number")
+        );
 
-            battingMap.set(existing.player_id, {
+        for (const playerId of preservedPlayerIds) {
+            const existing = existingBattingByPlayerId.get(playerId);
+
+            battingMap.set(playerId, {
 
                 innings_id: inningsId,
 
-                player_id: existing.player_id,
+                player_id: playerId,
 
-                batting_position: existing.batting_position,
+                batting_position: existing?.batting_position ?? (playerId === inningsStart?.striker_id ? 1 : 2),
 
                 runs: 0,
 
@@ -77,11 +97,15 @@ class StateCalculator {
                 is_out: false
 
             });
-
         }
 
         // Process each delivery
         for (const delivery of deliveries) {
+
+            // Use the striker pair recorded on this delivery as the source of
+            // truth before calculating who faces the next ball.
+            strikerId = delivery.batsman_id;
+            nonStrikerId = delivery.non_striker_id;
 
             runs += delivery.total_runs;
 
@@ -90,6 +114,11 @@ class StateCalculator {
             if (delivery.legal_ball) {
                 balls++;
             }
+
+            const countsAsBatsmanBall =
+                delivery.extra_type !== ExtraType.WIDE &&
+                delivery.extra_type !== ExtraType.BYE &&
+                delivery.extra_type !== ExtraType.LEG_BYE;
 
             // ----------------------------
             // Batting
@@ -129,7 +158,7 @@ class StateCalculator {
 
             batting.runs += delivery.runs_off_bat;
 
-            if (delivery.legal_ball) {
+            if (countsAsBatsmanBall) {
                 batting.balls++;
             }
 
@@ -143,18 +172,60 @@ class StateCalculator {
 
             if (delivery.is_wicket) {
 
-                batting.is_out = true;
+                const dismissedPlayerId =
+                    delivery.dismissed_player_id ?? delivery.batsman_id;
 
-                batting.dismissal_type =
+                let dismissedBatting =
+                    battingMap.get(dismissedPlayerId);
+
+                if (!dismissedBatting) {
+
+                    dismissedBatting = {
+
+                        innings_id: inningsId,
+
+                        player_id: dismissedPlayerId,
+
+                        batting_position: battingMap.size + 1,
+
+                        runs: 0,
+
+                        balls: 0,
+
+                        fours: 0,
+
+                        sixes: 0,
+
+                        is_out: false
+
+                    };
+
+                    battingMap.set(
+                        dismissedPlayerId,
+                        dismissedBatting
+                    );
+
+                }
+
+                dismissedBatting.is_out =
+                    delivery.dismissal_type !== DismissalType.RETIRED_HURT;
+
+                dismissedBatting.dismissal_type =
                     delivery.dismissal_type ?? undefined;
 
-                batting.bowler_id =
-                    delivery.bowler_id;
+                dismissedBatting.bowler_id =
+                    delivery.dismissal_type === DismissalType.RETIRED_HURT
+                        ? undefined
+                        : delivery.bowler_id;
 
-                batting.fielder_id =
-                    delivery.fielder_id ?? undefined;
+                dismissedBatting.fielder_id =
+                    delivery.dismissal_type === DismissalType.RETIRED_HURT
+                        ? undefined
+                        : delivery.fielder_id ?? undefined;
 
-                wickets++;
+                if (delivery.dismissal_type !== DismissalType.RETIRED_HURT) {
+                    wickets++;
+                }
 
             }
 
@@ -200,7 +271,10 @@ class StateCalculator {
 
             bowling.runs += delivery.total_runs;
 
-            if (delivery.is_wicket) {
+            if (
+                delivery.is_wicket &&
+                delivery.dismissal_type !== DismissalType.RETIRED_HURT
+            ) {
                 bowling.wickets++;
             }
 
@@ -216,22 +290,50 @@ class StateCalculator {
             // Strike rotation
             // ----------------------------
 
-            if (delivery.total_runs % 2 === 1) {
+            if (shouldSwapBatsman(delivery)) {
 
-                const temp = strikerId;
-                strikerId = nonStrikerId;
-                nonStrikerId = temp;
+                const rotated = rotateStrike(strikerId, nonStrikerId);
+                strikerId = rotated.strikerId;
+                nonStrikerId = rotated.nonStrikerId;
 
             }
 
             if (delivery.legal_ball && balls % 6 === 0) {
 
-                const temp = strikerId;
-                strikerId = nonStrikerId;
-                nonStrikerId = temp;
+                const rotated = rotateStrike(strikerId, nonStrikerId);
+                strikerId = rotated.strikerId;
+                nonStrikerId = rotated.nonStrikerId;
 
             }
 
+        }
+
+        for (const playerId of [strikerId, nonStrikerId]) {
+            if (battingMap.has(playerId)) {
+                continue;
+            }
+
+            const existing = existingBattingByPlayerId.get(playerId);
+
+            battingMap.set(playerId, {
+
+                innings_id: inningsId,
+
+                player_id: playerId,
+
+                batting_position: existing?.batting_position ?? battingMap.size + 1,
+
+                runs: 0,
+
+                balls: 0,
+
+                fours: 0,
+
+                sixes: 0,
+
+                is_out: false
+
+            });
         }
 
         // Save rebuilt batting

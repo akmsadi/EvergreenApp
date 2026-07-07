@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import { Menu, TextInput } from "react-native-paper";
 
 interface Option {
@@ -17,20 +17,33 @@ interface Props {
 export default function AppSelect({ label, value, options, onChange }: Props) {
     const [visible, setVisible] = useState(false);
 
+    function openMenu() {
+        if (!visible) {
+            setVisible(true);
+        }
+    }
+
+    function closeMenu() {
+        if (visible) {
+            setVisible(false);
+        }
+    }
+
     return (
         <View style={{ marginTop: 12 }}>
             <Menu
                 visible={visible}
-                onDismiss={() => setVisible(false)}
+                onDismiss={closeMenu}
                 anchor={
-                    <TextInput
-                        label={label}
-                        value={value}
-                        mode='outlined'
-                        editable={false}
-                        right={<TextInput.Icon icon='menu-down' onPress={() => setVisible(true)} />}
-                        onPressIn={() => setVisible(true)}
-                    />
+                    <Pressable onPress={openMenu}>
+                        <TextInput
+                            label={label}
+                            value={value}
+                            mode='outlined'
+                            editable={false}
+                            right={<TextInput.Icon icon='menu-down' onPress={openMenu} />}
+                        />
+                    </Pressable>
                 }
             >
                 {options.map((option) => (
@@ -40,7 +53,7 @@ export default function AppSelect({ label, value, options, onChange }: Props) {
                         onPress={() => {
                             onChange(option.value);
 
-                            setVisible(false);
+                            closeMenu();
                         }}
                     />
                 ))}

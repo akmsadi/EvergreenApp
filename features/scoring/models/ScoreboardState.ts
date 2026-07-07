@@ -2,6 +2,10 @@ export interface ScoreboardState {
 
     inningsId: number;
 
+    inningsNumber: number;
+
+    targetRuns?: number;
+
     totalRuns: number;
 
     wickets: number;
