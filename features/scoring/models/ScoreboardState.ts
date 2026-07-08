@@ -16,13 +16,13 @@ export interface ScoreboardState {
 
     extras: number;
 
-    strikerId: number;
+    strikerId: string;
     strikerName: string;
 
-    nonStrikerId: number;
+    nonStrikerId: string;
     nonStrikerName: string;
 
-    bowlerId: number;
+    bowlerId: string;
     bowlerName: string;
 
     lastBall: string;

@@ -1,14 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
 import { Button, SegmentedButtons, TextInput } from "react-native-paper";
-import { DatePickerModal } from "react-native-paper-dates";
+import { DatePickerInput } from "react-native-paper-dates";
 import { Dropdown } from "react-native-paper-dropdown";
 
+import { Colors } from "@/constants/colors";
 import { Spacing } from "@/constants/spacing";
 import { MatchModel } from "@/database/models/MatchModel";
 import VenueRepository from "@/database/repositories/VenueRepository";
-import SyncService from "@/services/SyncService";
-import { formatDatabaseDate, formatDisplayDate } from "@/utils/Common";
+import { formatDatabaseDate } from "@/utils/Common";
 
 type MatchEditorProps = {
     initialMatch?: MatchModel | null;
@@ -22,12 +22,8 @@ export default function MatchEditor({ initialMatch, onSave, onAddPlayers }: Matc
     const [teamName, setTeamName] = useState("");
     const [opponentName, setOpponentName] = useState("");
     const [notes, setNotes] = useState("");
-
     const [scheduledAt, setScheduledAt] = useState(new Date());
-    const [openDatePicker, setOpenDatePicker] = useState(false);
-
     const [venueId, setVenueId] = useState<number>();
-
     const [venueList, setVenueList] = useState<{ label: string; value: string }[]>([]);
 
     useEffect(() => {
@@ -65,11 +61,6 @@ export default function MatchEditor({ initialMatch, onSave, onAddPlayers }: Matc
                 value: String(v.id),
             })),
         );
-    };
-
-    const syncVenues = async () => {
-        await SyncService.syncVenues();
-        loadVenues();
     };
 
     const handleSave = () => {
@@ -114,7 +105,7 @@ export default function MatchEditor({ initialMatch, onSave, onAddPlayers }: Matc
     };
 
     return (
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+        <KeyboardAvoidingView style={{ flex: 1, backgroundColor: Colors.background }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
             <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps='handled'>
                 <SegmentedButtons
                     value={matchType}
@@ -142,29 +133,25 @@ export default function MatchEditor({ initialMatch, onSave, onAddPlayers }: Matc
                             options={venueList}
                         />
                     </View>
-
-                    <Button mode='contained' icon='sync' onPress={syncVenues} style={styles.sideButton} contentStyle={styles.sideButtonContent}>
-                        Sync
-                    </Button>
                 </View>
 
-                <View style={styles.dateGroup}>
-                    <TextInput mode='outlined' label='Match Date' value={formatDisplayDate(scheduledAt)} editable={false} style={styles.dateInput} />
-
-                    <Button
-                        mode='contained'
-                        icon='calendar'
-                        onPress={() => setOpenDatePicker(true)}
-                        style={styles.sideButton}
-                        contentStyle={styles.sideButtonContent}
-                    >
-                        Pick
-                    </Button>
-                </View>
+                <DatePickerInput
+                    locale='en-GB'
+                    label='Match Date'
+                    value={scheduledAt}
+                    onChange={(date) => {
+                        if (date) {
+                            setScheduledAt(date);
+                        }
+                    }}
+                    inputMode='start'
+                    mode='outlined'
+                />
 
                 <TextInput label='Notes' mode='outlined' multiline numberOfLines={4} value={notes} onChangeText={setNotes} />
-
-                <View style={styles.bottomButtons}>
+            </ScrollView>
+            <View style={styles.bottomButtons}>
+                {initialMatch && onAddPlayers && (
                     <View style={styles.buttonWrapper}>
                         <Button
                             mode='contained-tonal'
@@ -178,36 +165,21 @@ export default function MatchEditor({ initialMatch, onSave, onAddPlayers }: Matc
                             Add Players
                         </Button>
                     </View>
+                )}
 
-                    <View style={styles.buttonWrapper}>
-                        <Button mode='contained' icon='content-save' onPress={handleSave}>
-                            Save
-                        </Button>
-                    </View>
+                <View style={styles.buttonWrapper}>
+                    <Button mode='contained' icon='content-save' onPress={handleSave}>
+                        Save
+                    </Button>
                 </View>
-            </ScrollView>
-
-            <DatePickerModal
-                locale='en-GB'
-                mode='single'
-                visible={openDatePicker}
-                date={scheduledAt}
-                onDismiss={() => setOpenDatePicker(false)}
-                onConfirm={({ date }) => {
-                    setOpenDatePicker(false);
-
-                    if (date) {
-                        setScheduledAt(date);
-                    }
-                }}
-            />
+            </View>
         </KeyboardAvoidingView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-        paddingHorizontal: Spacing.defaultSpace,
+        padding: Spacing.defaultSpace,
         gap: Spacing.defaultSpace,
     },
 
@@ -244,7 +216,11 @@ const styles = StyleSheet.create({
     bottomButtons: {
         flexDirection: "row",
         gap: 12,
-        marginTop: 12,
+        marginTop: "auto",
+        padding: Spacing.defaultSpace,
+        backgroundColor: Colors.white,
+        borderTopWidth: 1,
+        borderTopColor: Colors.darkGray,
     },
 
     buttonWrapper: {

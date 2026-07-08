@@ -8,11 +8,11 @@ export interface ScoringState {
 
     legalBalls: number;
 
-    strikerId: number;
+    strikerId: string;
 
-    nonStrikerId: number;
+    nonStrikerId: string;
 
-    bowlerId: number;
+    bowlerId: string;
 
     nextBatsmanPosition: number;
 

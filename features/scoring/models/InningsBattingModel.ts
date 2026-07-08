@@ -2,7 +2,7 @@ export interface InningsBattingModel {
 
     innings_id: number;
 
-    player_id: number;
+    player_id: string;
 
     batting_position: number;
 
@@ -18,8 +18,8 @@ export interface InningsBattingModel {
 
     dismissal_type?: string;
 
-    bowler_id?: number;
+    bowler_id?: string;
 
-    fielder_id?: number;
+    fielder_id?: string;
 
 }

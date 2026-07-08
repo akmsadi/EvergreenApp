@@ -2,7 +2,7 @@ export interface InningsBowlingModel {
 
     innings_id: number;
 
-    player_id: number;
+    player_id: string;
 
     balls: number;
 

@@ -1,3 +1,4 @@
+import { Colors } from "@/constants/colors";
 import AuthService from "@/services/AuthService";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { router, Tabs } from "expo-router";
@@ -35,7 +36,7 @@ export default function TabLayout() {
     }
 
     return (
-        <Tabs screenOptions={{ headerShown: false }}>
+        <Tabs screenOptions={{ headerShown: false, tabBarStyle: { borderTopColor: Colors.darkGray, borderTopWidth: 1, paddingTop: 12 } }}>
             <Tabs.Screen
                 name='dashboard'
                 options={{

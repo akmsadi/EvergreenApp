@@ -131,7 +131,7 @@ class DeliveryRepository {
 
     updateDismissedPlayer(
         deliveryId: number,
-        dismissedPlayerId: number
+        dismissedPlayerId: string
     ): void {
 
         db.runSync(
@@ -147,9 +147,9 @@ class DeliveryRepository {
 
     updateWicketSelection(
         deliveryId: number,
-        dismissedPlayerId: number,
+        dismissedPlayerId: string,
         dismissalType: string,
-        fielderId?: number
+        fielderId?: string
     ): void {
 
         db.runSync(

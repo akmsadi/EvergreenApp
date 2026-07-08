@@ -1,15 +1,17 @@
+import { PlayerIDs } from "@/types/player";
+import { generateId } from "@/utils/Common";
 import db from "../db";
 import { PlayerModel } from "../models/PlayerModel";
 
 class PlayerRepository {
 
-    save(player: PlayerModel) {
+    insert(player: PlayerModel): string {
+        const id = generateId();
 
         db.runSync(
-            `
-            INSERT OR REPLACE INTO players
-            (
+            `INSERT INTO players (
                 id,
+                server_id,
                 name,
                 organization,
                 phone,
@@ -21,12 +23,44 @@ class PlayerRepository {
                 total_expense,
                 created_at,
                 updated_at
-            )
-            VALUES
-            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `,
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+            player.id,
+            player.server_id,
+            player.name,
+            player.organization,
+            player.phone,
+            player.email,
+            player.address,
+            player.guest_of_player_id,
+            player.status,
+            player.total_contribution,
+            player.total_expense,
+            player.created_at,
+            player.updated_at,
+        ]
+        );
+
+        return id;
+    }
+
+    update(player: PlayerModel) {
+        db.runSync(
+            `UPDATE players
+                SET
+                    server_id=?,
+                    name=?,
+                    organization=?,
+                    phone=?,
+                    email=?,
+                    address=?,
+                    guest_of_player_id=?,
+                    status=?,
+                    total_contribution=?,
+                    total_expense=?,
+                    updated_at=?
+                WHERE id=?`,
             [
-                player.id,
+                player.server_id,
                 player.name,
                 player.organization,
                 player.phone,
@@ -36,19 +70,35 @@ class PlayerRepository {
                 player.status,
                 player.total_contribution,
                 player.total_expense,
-                player.created_at,
                 player.updated_at,
+                player.id,
             ]
         );
     }
 
     saveMany(players: PlayerModel[]) {
         db.withTransactionSync(() => {
-            players.forEach((player) => this.save(player));
+            players.forEach((player) => {
+                const existing = this.find(player.id);
+                if (existing) {
+                    this.update(player);
+                } else {
+                    this.insert(player);
+                }
+            });
         });
     }
 
-    find(id: number): PlayerModel | null {
+    getByServerId(server_id: number | null): PlayerModel | null {
+        const row = db.getFirstSync(`
+            SELECT *
+            FROM players
+            WHERE server_id = ?
+        `, [server_id]) as PlayerModel | null;
+        return row;
+    }
+
+    find(id: string): PlayerModel | null {
 
         const row = db.getFirstSync(
             `
@@ -60,6 +110,33 @@ class PlayerRepository {
         ) as PlayerModel | null;
 
         return row;
+    }
+
+    getAppPlayers(): PlayerModel[] | [] {
+        const players = db.getAllSync(
+            "SELECT * FROM players WHERE server_id IS NULL"
+        ) as PlayerModel[];
+
+        return players.length > 0 ? players : [];
+    }
+
+    updateServerIds(playerIds: PlayerIDs[]) {
+        db.withTransactionSync(() => {
+            playerIds.forEach(({ id, server_id }) => {
+                db.runSync(
+                    `
+                UPDATE players
+                SET
+                    server_id = ?
+                WHERE id = ?
+                `,
+                    [
+                        server_id,
+                        id,
+                    ]
+                );
+            });
+        });
     }
 
     getAll(): PlayerModel[] {
@@ -75,6 +152,14 @@ class PlayerRepository {
 
     deleteAll() {
         db.runSync("DELETE FROM players");
+    }
+
+    delete(id: string) {
+        db.runSync("DELETE FROM players WHERE id = ?", [id]);
+    }
+
+    clearServerIds() {
+        db.runSync(`UPDATE players SET server_id = NULL`);
     }
 }
 

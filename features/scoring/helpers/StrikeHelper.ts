@@ -2,8 +2,8 @@ import { DeliveryModel } from "../models/DeliveryModel";
 import { ExtraType } from "../types/ExtraType";
 
 export function rotateStrike(
-    strikerId: number,
-    nonStrikerId: number
+    strikerId: string,
+    nonStrikerId: string
 ) {
 
     return {

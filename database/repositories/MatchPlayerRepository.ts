@@ -2,9 +2,7 @@ import db from "../db";
 import { MatchPlayerModel } from "../models/MatchPlayerModel";
 
 class MatchPlayerRepository {
-    save(matchId: number, playerId: number, team: "team_a" | "team_b", isCaptain: number) {
-        const normalizedPlayerId = Number(playerId);
-
+    save(matchId: number, playerId: string, team: "team_a" | "team_b", isCaptain: number) {
         db.runSync(
             `
             INSERT INTO match_players
@@ -15,11 +13,11 @@ class MatchPlayerRepository {
                 is_captain = excluded.is_captain,
                 updated_at = excluded.updated_at
             `,
-            [matchId, normalizedPlayerId, team, isCaptain, new Date().toISOString(), new Date().toISOString()],
+            [matchId, playerId, team, isCaptain, new Date().toISOString(), new Date().toISOString()],
         );
     }
 
-    delete(matchId: number, playerId: number, team: "team_a" | "team_b") {
+    delete(matchId: number, playerId: string, team: "team_a" | "team_b") {
         db.runSync(
             `
             DELETE FROM match_players
@@ -45,7 +43,7 @@ class MatchPlayerRepository {
         ) as MatchPlayerModel[];
     }
 
-    getTeamPlayers(matchId: number, team: "team_a" | "team_b"): number[] {
+    getTeamPlayers(matchId: number, team: "team_a" | "team_b"): string[] {
         const rows = db.getAllSync(
             `
             SELECT player_id
@@ -54,12 +52,12 @@ class MatchPlayerRepository {
             ORDER BY player_id
             `,
             [matchId, team],
-        ) as { player_id: number }[];
+        ) as { player_id: string }[];
 
-        return rows.map((row) => Number(row.player_id));
+        return rows.map((row) => row.player_id);
     }
 
-    getCaptain(matchId: number, team: "team_a" | "team_b"): number | null {
+    getCaptain(matchId: number, team: "team_a" | "team_b"): string | null {
         const row = db.getFirstSync(
             `
             SELECT player_id
@@ -68,12 +66,12 @@ class MatchPlayerRepository {
             LIMIT 1
             `,
             [matchId, team],
-        ) as { player_id: number } | null;
+        ) as { player_id: string } | null;
 
         return row ? row.player_id : null;
     }
 
-    saveAssignments(matchId: number, teamAIds: number[], teamBIds: number[], teamACaptain: number | null, teamBCaptain: number | null) {
+    saveAssignments(matchId: number, teamAIds: string[], teamBIds: string[], teamACaptain: string | null, teamBCaptain: string | null) {
         db.withTransactionSync(() => {
             db.runSync(`DELETE FROM match_players WHERE match_id = ?`, [matchId]);
 

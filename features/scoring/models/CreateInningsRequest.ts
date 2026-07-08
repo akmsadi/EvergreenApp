@@ -6,11 +6,11 @@ export interface CreateInningsRequest {
 
     bowlingTeam: "team_a" | "team_b";
 
-    strikerId: number;
+    strikerId: string;
 
-    nonStrikerId: number;
+    nonStrikerId: string;
 
-    bowlerId: number;
+    bowlerId: string;
 
     maxOvers: number;
 

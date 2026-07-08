@@ -18,9 +18,9 @@ type TeamSelectionPanelProps = {
     title: string;
     count: number;
     players: PlayerModel[];
-    selectedIds: number[];
-    hiddenPlayerIds: number[];
-    onToggle: (playerId: number) => void;
+    selectedIds: string[];
+    hiddenPlayerIds: string[];
+    onToggle: (playerId: string) => void;
 };
 
 export default function MatchPlayersScreen() {
@@ -28,8 +28,8 @@ export default function MatchPlayersScreen() {
     const { id } = useLocalSearchParams<{ id?: string }>();
 
     const [players, setPlayers] = useState<PlayerModel[]>([]);
-    const [teamAIds, setTeamAIds] = useState<number[]>([]);
-    const [teamBIds, setTeamBIds] = useState<number[]>([]);
+    const [teamAIds, setTeamAIds] = useState<string[]>([]);
+    const [teamBIds, setTeamBIds] = useState<string[]>([]);
     const [teamACaptain, setTeamACaptain] = useState<string>();
     const [teamBCaptain, setTeamBCaptain] = useState<string>();
     const [activeTeam, setActiveTeam] = useState<TeamKey>("teamA");
@@ -39,12 +39,7 @@ export default function MatchPlayersScreen() {
     const teamBTitle = match?.opponent_name || "Team 2";
 
     useEffect(() => {
-        setPlayers(
-            PlayerRepository.getAll().map((player) => ({
-                ...player,
-                id: Number(player.id),
-            })),
-        );
+        setPlayers(PlayerRepository.getAll());
 
         if (id) {
             const matchId = Number(id);
@@ -61,12 +56,12 @@ export default function MatchPlayersScreen() {
     }, [id]);
 
     const teamAOptions = useMemo(
-        () => players.filter((player) => teamAIds.includes(Number(player.id))).map((player) => ({ label: player.name, value: String(player.id) })),
+        () => players.filter((player) => teamAIds.includes(player.id)).map((player) => ({ label: player.name, value: String(player.id) })),
         [players, teamAIds],
     );
 
     const teamBOptions = useMemo(
-        () => players.filter((player) => teamBIds.includes(Number(player.id))).map((player) => ({ label: player.name, value: String(player.id) })),
+        () => players.filter((player) => teamBIds.includes(player.id)).map((player) => ({ label: player.name, value: String(player.id) })),
         [players, teamBIds],
     );
 
@@ -82,29 +77,27 @@ export default function MatchPlayersScreen() {
         }
     }, [teamBCaptain, teamBOptions]);
 
-    const toggleSelection = (team: TeamKey, playerId: number) => {
-        const normalizedPlayerId = Number(playerId);
-
+    const toggleSelection = (team: TeamKey, playerId: string) => {
         if (team === "teamA") {
             setTeamAIds((current) => {
-                if (current.includes(normalizedPlayerId)) {
-                    return current.filter((id) => id !== normalizedPlayerId);
+                if (current.includes(playerId)) {
+                    return current.filter((id) => id !== playerId);
                 }
 
-                return [...current, normalizedPlayerId];
+                return [...current, playerId];
             });
-            setTeamBIds((current) => current.filter((id) => id !== normalizedPlayerId));
+            setTeamBIds((current) => current.filter((id) => id !== playerId));
             return;
         }
 
         setTeamBIds((current) => {
-            if (current.includes(normalizedPlayerId)) {
-                return current.filter((id) => id !== normalizedPlayerId);
+            if (current.includes(playerId)) {
+                return current.filter((id) => id !== playerId);
             }
 
-            return [...current, normalizedPlayerId];
+            return [...current, playerId];
         });
-        setTeamAIds((current) => current.filter((id) => id !== normalizedPlayerId));
+        setTeamAIds((current) => current.filter((id) => id !== playerId));
     };
 
     const handleSave = () => {
@@ -118,8 +111,8 @@ export default function MatchPlayersScreen() {
             matchId,
             teamAIds,
             teamBIds,
-            teamACaptain ? Number(teamACaptain) : null,
-            teamBCaptain ? Number(teamBCaptain) : null,
+            teamACaptain ?? null,
+            teamBCaptain ?? null,
         );
         router.back();
     };
@@ -203,13 +196,13 @@ export default function MatchPlayersScreen() {
 function TeamSelectionPanel({ title, count, players, selectedIds, hiddenPlayerIds, onToggle }: TeamSelectionPanelProps) {
     const [query, setQuery] = useState("");
 
-    const handleToggle = (playerId: number) => {
+    const handleToggle = (playerId: string) => {
         onToggle(playerId);
         setQuery("");
     };
 
     const filteredPlayers = players.filter((player) => {
-        if (hiddenPlayerIds.includes(Number(player.id))) {
+        if (hiddenPlayerIds.includes(player.id)) {
             return false;
         }
 
@@ -237,7 +230,7 @@ function TeamSelectionPanel({ title, count, players, selectedIds, hiddenPlayerId
                     <Text style={styles.emptyText}>No players match your search.</Text>
                 ) : (
                     filteredPlayers.map((player) => {
-                        const checked = selectedIds.includes(Number(player.id));
+                        const checked = selectedIds.includes(player.id);
 
                         return (
                             <View key={player.id} style={styles.playerRow}>

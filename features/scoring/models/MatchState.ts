@@ -12,11 +12,11 @@ export interface MatchState {
 
     runRate: number;
 
-    strikerId: number;
+    strikerId: string;
 
-    nonStrikerId: number;
+    nonStrikerId: string;
 
-    bowlerId: number;
+    bowlerId: string;
 
     lastBall?: string;
 

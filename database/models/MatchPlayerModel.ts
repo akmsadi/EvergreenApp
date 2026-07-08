@@ -1,6 +1,6 @@
 export interface MatchPlayerModel {
     match_id: number;
-    player_id: number;
+    player_id: string;
     team: "team_a" | "team_b";
     is_captain: number;
     created_at: string | null;

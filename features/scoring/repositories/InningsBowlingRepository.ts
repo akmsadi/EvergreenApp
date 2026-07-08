@@ -65,7 +65,7 @@ class InningsBowlingRepository {
 
     find(
         inningsId: number,
-        playerId: number
+        playerId: string
     ): InningsBowlingModel | null {
 
         return db.getFirstSync(
@@ -101,7 +101,7 @@ class InningsBowlingRepository {
 
     delete(
         inningsId: number,
-        playerId: number
+        playerId: string
     ): void {
 
         db.runSync(

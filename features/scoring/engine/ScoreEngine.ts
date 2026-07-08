@@ -194,9 +194,9 @@ class ScoreEngine {
     }
 
     async startSecondInnings(request: {
-        strikerId: number;
-        nonStrikerId: number;
-        bowlerId: number;
+        strikerId: string;
+        nonStrikerId: string;
+        bowlerId: string;
     }): Promise<number> {
 
         if (this.currentInningsId === null) {
@@ -329,9 +329,9 @@ class ScoreEngine {
 
     async startInnings(
         inningsId: number,
-        strikerId: number,
-        nonStrikerId: number,
-        bowlerId: number
+        strikerId: string,
+        nonStrikerId: string,
+        bowlerId: string
     ): Promise<void> {
 
         this.currentInningsId = inningsId;
@@ -371,7 +371,7 @@ class ScoreEngine {
     }
 
     async changeBowler(
-        bowlerId: number
+        bowlerId: string
     ): Promise<ScoreboardState> {
 
         const innings =
@@ -457,7 +457,7 @@ class ScoreEngine {
     }
 
     async newBatsman(
-        playerId: number
+        playerId: string
     ): Promise<void> {
 
         const current =
@@ -808,7 +808,7 @@ class ScoreEngine {
         });
     }
 
-    async caught(fielderId: number) {
+    async caught(fielderId: string) {
         return this.scoreBall({
             runs: 0,
             isWicket: true,
@@ -825,7 +825,7 @@ class ScoreEngine {
         });
     }
 
-    async runOut(runs = 0, dismissedPlayerId?: number) {
+    async runOut(runs = 0, dismissedPlayerId?: string) {
         return this.scoreBall({
             runs,
             isWicket: true,
@@ -846,9 +846,9 @@ class ScoreEngine {
         dismissalType: DismissalType,
         options?: {
             runs?: number;
-            dismissedPlayerId?: number;
-            nextBatsmanId?: number;
-            fielderId?: number;
+            dismissedPlayerId?: string;
+            nextBatsmanId?: string;
+            fielderId?: string;
         }
     ) {
 
@@ -946,7 +946,7 @@ class ScoreEngine {
     }
 
     async selectNextBatsman(
-        playerId: number
+        playerId: string
     ): Promise<void> {
 
         const innings = this.inningsRepository.find(this.getActiveInningsId());
@@ -990,10 +990,10 @@ class ScoreEngine {
     }
 
     async resolveWicket(
-        nextBatsmanId: number,
-        dismissedPlayerId: number,
+        nextBatsmanId: string,
+        dismissedPlayerId: string,
         dismissalType: DismissalType,
-        fielderId?: number
+        fielderId?: string
     ): Promise<void> {
 
         const innings =

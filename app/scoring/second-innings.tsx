@@ -30,9 +30,9 @@ export default function SecondInningsScreen() {
     const [battingPlayers, setBattingPlayers] = useState<any[]>([]);
     const [bowlingPlayers, setBowlingPlayers] = useState<any[]>([]);
 
-    const [strikerId, setStrikerId] = useState<number>();
-    const [nonStrikerId, setNonStrikerId] = useState<number>();
-    const [bowlerId, setBowlerId] = useState<number>();
+    const [strikerId, setStrikerId] = useState<string>();
+    const [nonStrikerId, setNonStrikerId] = useState<string>();
+    const [bowlerId, setBowlerId] = useState<string>();
 
     useEffect(() => {
         load();
@@ -125,13 +125,12 @@ export default function SecondInningsScreen() {
 
                         <AppSelect
                             label='Striker'
-                            value={strikerOptions.find((option) => option.value === String(strikerId))?.label ?? ""}
+                            value={strikerOptions.find((option) => option.value === strikerId)?.label ?? ""}
                             options={strikerOptions}
                             onChange={(value) => {
-                                const selectedStrikerId = Number(value);
-                                setStrikerId(selectedStrikerId);
+                                setStrikerId(value);
 
-                                if (selectedStrikerId === nonStrikerId) {
+                                if (value === nonStrikerId) {
                                     setNonStrikerId(undefined);
                                 }
                             }}
@@ -139,9 +138,9 @@ export default function SecondInningsScreen() {
 
                         <AppSelect
                             label='Non-striker'
-                            value={nonStrikerOptions.find((option) => option.value === String(nonStrikerId))?.label ?? ""}
+                            value={nonStrikerOptions.find((option) => option.value === nonStrikerId)?.label ?? ""}
                             options={nonStrikerOptions}
-                            onChange={(value) => setNonStrikerId(Number(value))}
+                            onChange={setNonStrikerId}
                         />
                     </Card.Content>
                 </Card>
@@ -154,9 +153,9 @@ export default function SecondInningsScreen() {
 
                         <AppSelect
                             label='Bowler'
-                            value={bowlerOptions.find((option) => option.value === String(bowlerId))?.label ?? ""}
+                            value={bowlerOptions.find((option) => option.value === bowlerId)?.label ?? ""}
                             options={bowlerOptions}
-                            onChange={(value) => setBowlerId(Number(value))}
+                            onChange={setBowlerId}
                         />
                     </Card.Content>
                 </Card>

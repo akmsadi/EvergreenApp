@@ -7,6 +7,7 @@ import VenueRepository from "@/database/repositories/VenueRepository";
 import ApiService from "./ApiService";
 
 class SyncService {
+
     /**
      * Sync all application data
      */
@@ -73,11 +74,15 @@ class SyncService {
     async syncPlayers(): Promise<number> {
         const players = await ApiService.get<PlayerModel[]>("/players");
 
+        // Reset all server IDs first
+        PlayerRepository.clearServerIds();
+
+        // Re-map downloaded players
         PlayerRepository.saveMany(
             players.map(player => ({
                 ...player,
-                id: Number(player.id),
-                guest_of_player_id: player.guest_of_player_id ? Number(player.guest_of_player_id) : null,
+                server_id: Number(player.server_id),
+                guest_of_player_id: player.guest_of_player_id ?? null,
                 total_contribution: Number(player.total_contribution),
                 total_expense: Number(player.total_expense),
             }))

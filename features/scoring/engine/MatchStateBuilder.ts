@@ -7,9 +7,9 @@ export default class MatchStateBuilder {
 
     static build(
         innings: InningsModel,
-        strikerId: number,
-        nonStrikerId: number,
-        bowlerId: number,
+        strikerId: string,
+        nonStrikerId: string,
+        bowlerId: string,
         lastBall?: string
     ): MatchState {
 

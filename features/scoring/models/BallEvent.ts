@@ -13,10 +13,10 @@ export interface BallEvent {
 
     dismissalType?: DismissalType;
 
-    dismissedPlayerId?: number;
+    dismissedPlayerId?: string;
 
-    fielderId?: number;
+    fielderId?: string;
 
-    nextBatsmanId?: number;
+    nextBatsmanId?: string;
 
 }

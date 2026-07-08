@@ -65,14 +65,14 @@ class StateCalculator {
 
         // Get all deliveries for this innings
         const deliveries = this.deliveryRepository.findAll(inningsId);
-        const battingMap = new Map<number, InningsBattingModel>();
-        const bowlingMap = new Map<number, InningsBowlingModel>();
+        const battingMap = new Map<string, InningsBattingModel>();
+        const bowlingMap = new Map<string, InningsBowlingModel>();
 
-        const preservedPlayerIds = new Set<number>(
+        const preservedPlayerIds = new Set<string>(
             [
                 inningsStart?.striker_id,
                 inningsStart?.non_striker_id,
-            ].filter((playerId): playerId is number => typeof playerId === "number")
+            ].filter((playerId): playerId is string => typeof playerId === "string")
         );
 
         for (const playerId of preservedPlayerIds) {

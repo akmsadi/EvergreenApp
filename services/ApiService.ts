@@ -47,13 +47,10 @@ class ApiService {
             headers: this.getHeaders(),
             body: JSON.stringify(body),
         });
-
         const data = await response.json();
-
         if (!response.ok) {
             throw new Error(data?.message || `HTTP ${response.status}`);
         }
-
         return this.unwrap<T>(data);
     }
 

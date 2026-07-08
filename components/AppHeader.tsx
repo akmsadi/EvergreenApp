@@ -57,8 +57,9 @@ export default function AppHeader({ title, subtitle, showBack = false, rightIcon
 
 const styles = StyleSheet.create({
     safeArea: {
-        backgroundColor: Colors.background, // or your theme background
-        marginBottom: Spacing.defaultSpace,
+        backgroundColor: Colors.white,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.darkGray,
     },
 
     container: {

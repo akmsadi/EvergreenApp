@@ -6,7 +6,7 @@ export const Colors = {
     warning: "#FBC02D",
     danger: "#E53935",
 
-    background: "rgb(233, 236, 239)",
+    background: "#F3F5F8",
     white: "#FFFFFF",
 
     text: "#263238",
@@ -16,5 +16,7 @@ export const Colors = {
     gray: "#EEE",
     lightGray: "#F5F5F5",
     darkGray: "#BDBDBD",
+    black: "#000000",
+
 
 };

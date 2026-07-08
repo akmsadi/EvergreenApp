@@ -60,7 +60,7 @@ export default function Bowler() {
             return;
         }
 
-        await ScoreEngine.changeBowler(Number(selectedBowlerId));
+        await ScoreEngine.changeBowler(selectedBowlerId);
         router.back();
     }
 

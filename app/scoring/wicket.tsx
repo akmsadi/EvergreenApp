@@ -15,7 +15,7 @@ import { ScrollView, StyleSheet } from "react-native";
 import { Button, Card, Text } from "react-native-paper";
 
 interface PlayerItem {
-    id: number;
+    id: string;
     name: string;
 }
 
@@ -198,10 +198,10 @@ export default function WicketScreen() {
         }
 
         await ScoreEngine.resolveWicket(
-            Number(selectedPlayerId),
-            Number(selectedDismissedPlayerId),
+            selectedPlayerId,
+            selectedDismissedPlayerId,
             selectedDismissalType as DismissalType,
-            selectedFielderId ? Number(selectedFielderId) : undefined,
+            selectedFielderId || undefined,
         );
 
         router.back();
