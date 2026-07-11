@@ -24,6 +24,8 @@ class ScoreEngine {
 
     private currentInningsId: number | null = null;
 
+    private autoSwapEnabled = true;
+
     private inningsRepository = InningsRepository;
 
     private inningsStartRepository = InningsStartRepository;
@@ -430,6 +432,14 @@ class ScoreEngine {
 
     }
 
+    isAutoSwapEnabled(): boolean {
+        return this.autoSwapEnabled;
+    }
+
+    setAutoSwapEnabled(enabled: boolean): void {
+        this.autoSwapEnabled = enabled;
+    }
+
     async swapStrike(): Promise<ScoreboardState> {
 
         const innings =
@@ -702,7 +712,8 @@ class ScoreEngine {
 
         const state =
             this.stateCalculator.rebuild(
-                innings.id!
+                innings.id!,
+                this.autoSwapEnabled
             );
 
         return {
@@ -759,7 +770,8 @@ class ScoreEngine {
         this.deliveryRepository.delete(lastDelivery.id!);
 
         this.stateCalculator.rebuild(
-            innings.id!
+            innings.id!,
+            this.autoSwapEnabled
         );
 
     }

@@ -204,6 +204,11 @@ export default function WicketScreen() {
             selectedFielderId || undefined,
         );
 
+        if (ScoreEngine.isEndOfOver()) {
+            router.replace("/scoring/bowler");
+            return;
+        }
+
         router.back();
     }
 

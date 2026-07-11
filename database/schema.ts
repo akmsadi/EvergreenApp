@@ -37,7 +37,6 @@ CREATE TABLE IF NOT EXISTS matches (
 `;
 
 export const CREATE_PLAYERS_TABLE = `
-DROP TABLE IF EXISTS players;
 CREATE TABLE IF NOT EXISTS players (
     id TEXT PRIMARY KEY,
     server_id INTEGER UNIQUE,

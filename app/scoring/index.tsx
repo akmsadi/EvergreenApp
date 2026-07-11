@@ -9,11 +9,14 @@ import { DismissalType } from "@/features/scoring/types/DismissalType";
 
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
-import { Button, Card, Divider, Text, TextInput } from "react-native-paper";
+import { Alert, ScrollView, StyleSheet, View } from "react-native";
+import { Button, Checkbox, Divider, Text, TextInput } from "react-native-paper";
 
+import { Colors } from "@/constants/colors";
+import { Spacing } from "@/constants/spacing";
 import { ScoreboardState } from "@/features/scoring/models/ScoreboardState";
 import { ExtraType } from "@/features/scoring/types/ExtraType";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 export default function ScoringScreen() {
     const router = useRouter();
@@ -25,6 +28,7 @@ export default function ScoringScreen() {
     const [lastSixBalls, setLastSixBalls] = useState<string[]>([]);
     const [noBallRunsInput, setNoBallRunsInput] = useState("");
     const [wicketRunsInput, setWicketRunsInput] = useState("0");
+    const [autoSwapDisabled, setAutoSwapDisabled] = useState(!ScoreEngine.isAutoSwapEnabled());
 
     useFocusEffect(
         useCallback(() => {
@@ -134,15 +138,29 @@ export default function ScoringScreen() {
         router.push("/scoring/wicket");
     }
 
-    async function undo() {
-        await ScoreEngine.undo();
-
-        await loadScoreboard();
+    function undo() {
+        Alert.alert("Undo last ball", "Are you sure you want to undo the last ball?", [
+            { text: "Cancel", style: "cancel" },
+            {
+                text: "Undo",
+                style: "destructive",
+                onPress: async () => {
+                    await ScoreEngine.undo();
+                    await loadScoreboard();
+                },
+            },
+        ]);
     }
 
     async function swapStrike() {
         await ScoreEngine.swapStrike();
         await loadScoreboard();
+    }
+
+    function toggleAutoSwap() {
+        const disabled = !autoSwapDisabled;
+        ScoreEngine.setAutoSwapEnabled(!disabled);
+        setAutoSwapDisabled(disabled);
     }
 
     return (
@@ -156,161 +174,140 @@ export default function ScoringScreen() {
                 }
             />
 
-            <ScrollView contentContainerStyle={{ paddingHorizontal: 16, gap: 16 }}>
-                <Card>
-                    <Card.Content>
-                        <View style={styles.topPanelRow}>
-                            <View>
-                                <Text variant='titleMedium'>Run/Wicket</Text>
+            <ScrollView contentContainerStyle={{ padding: Spacing.defaultSpace, gap: 16 }}>
+                <View style={styles.topPanelRow}>
+                    <Text variant='headlineSmall'>
+                        Score: {scoreboard?.totalRuns ?? 0}/{scoreboard?.wickets ?? 0}
+                    </Text>
+                    <Text>({scoreboard?.overs ?? "0.0"} overs)</Text>
+                </View>
 
-                                <Text variant='headlineMedium'>
-                                    {scoreboard?.totalRuns ?? 0}/{scoreboard?.wickets ?? 0}
-                                </Text>
-                            </View>
-
-                            <View>
-                                <Text variant='titleMedium'>Overs</Text>
-
-                                <Text variant='headlineSmall'>{scoreboard?.overs ?? "0.0"}</Text>
-                            </View>
-                        </View>
-                    </Card.Content>
-                </Card>
-
-                <Card>
-                    <Card.Content>
-                        <View style={styles.batsmanRow}>
-                            <Text style={styles.batsmanName}>{`${scoreboard?.strikerName ?? "Unknown"} *`}</Text>
-
-                            <Text style={styles.batsmanScore}>{strikerStats ? `${strikerStats.runs} (${strikerStats.balls})` : "0 (0)"}</Text>
-                        </View>
-
-                        <View style={styles.batsmanRow}>
+                <View>
+                    <View style={styles.batsmanRow}>
+                        <View style={styles.batsmanInfo}>
+                            <MaterialCommunityIcons name='cricket' size={18} color='#2E7D32' style={styles.batIcon} />
                             <Text style={styles.batsmanName}>{scoreboard?.nonStrikerName ?? "Unknown"}</Text>
-
-                            <Text style={styles.batsmanScore}>{nonStrikerStats ? `${nonStrikerStats.runs} (${nonStrikerStats.balls})` : "0 (0)"}</Text>
                         </View>
+                        <Text style={styles.batsmanScore}>{strikerStats ? `${strikerStats.runs} (${strikerStats.balls})` : "0 (0)"}</Text>
+                    </View>
 
-                        <Divider style={styles.divider} />
+                    <View style={styles.batsmanRow}>
+                        <View style={styles.batsmanInfo}>
+                            <MaterialCommunityIcons name='cricket' size={18} color='#2E7D32' style={styles.batIcon} />
+                            <Text style={styles.batsmanName}>{scoreboard?.strikerName ?? "Unknown"}</Text>
+                        </View>
+                        <Text style={styles.batsmanScore}>{nonStrikerStats ? `${nonStrikerStats.runs} (${nonStrikerStats.balls})` : "0 (0)"}</Text>
+                    </View>
 
-                        <View style={styles.batsmanRow}>
+                    <Divider style={styles.divider} />
+
+                    <View style={styles.batsmanRow}>
+                        <View style={styles.batsmanInfo}>
+                            <MaterialCommunityIcons name='baseball' size={18} color='#2E7D32' style={styles.batIcon} />
                             <Text style={styles.batsmanName}>{scoreboard?.bowlerName ?? "Unknown"}</Text>
-
-                            <Text style={styles.bowlerScore}>
-                                {bowlerStats ? `${bowlerStats.wickets}/${bowlerStats.runs} ` : "0/0 "}
-                                <Text style={styles.bowlerScoreMuted}>{`(${bowlerStats?.balls ?? 0})`}</Text>
-                            </Text>
                         </View>
 
-                        <Button mode='outlined' onPress={swapStrike} style={styles.inlineAction}>
-                            Swap Strike
-                        </Button>
-
-                        <View style={styles.lastSixRow}>
-                            <Text style={styles.lastSixLabel}>Last 6</Text>
-
-                            <View style={styles.lastSixBallsWrap}>
-                                {(lastSixBalls.length > 0 ? lastSixBalls : ["-"]).map((ball, index) => (
-                                    <View key={`${ball}-${index}`} style={styles.ballChip}>
-                                        <Text style={styles.ballChipText}>{ball}</Text>
-                                    </View>
-                                ))}
-                            </View>
-                        </View>
-                    </Card.Content>
-                </Card>
-
-                <Card>
-                    <Card.Content>
-                        <Text variant='titleMedium' style={styles.actionSectionTitle}>
-                            Runs
+                        <Text style={styles.bowlerScore}>
+                            {bowlerStats ? `${bowlerStats.wickets}/${bowlerStats.runs} ` : "0/0 "}
+                            <Text style={styles.bowlerScoreMuted}>{`(${bowlerStats?.balls ?? 0})`}</Text>
                         </Text>
+                    </View>
 
-                        <View style={styles.buttonGrid}>
-                            <Button mode='contained' onPress={() => score(0)} style={styles.scoreButton}>
-                                0
-                            </Button>
+                    <View style={styles.swapStrikeRow}>
+                        <Checkbox.Item
+                            label='Disable Auto Swap'
+                            status={autoSwapDisabled ? "checked" : "unchecked"}
+                            onPress={toggleAutoSwap}
+                            style={styles.autoSwapCheckbox}
+                            labelStyle={styles.autoSwapCheckboxLabel}
+                        />
 
-                            <Button mode='contained' onPress={() => score(1)} style={styles.scoreButton}>
-                                1
-                            </Button>
+                        <Button mode='contained' icon='sync' onPress={swapStrike} style={styles.swapStrikeButton}>
+                            Swap
+                        </Button>
+                    </View>
 
-                            <Button mode='contained' onPress={() => score(2)} style={styles.scoreButton}>
-                                2
-                            </Button>
+                    <View style={styles.lastSixRow}>
+                        <Text style={styles.lastSixLabel}>Last 6</Text>
+                        <View style={styles.lastSixBallsWrap}>
+                            {(lastSixBalls.length > 0 ? lastSixBalls : ["-"]).map((ball, index) => (
+                                <View key={`${ball}-${index}`} style={styles.ballChip}>
+                                    <Text style={styles.ballChipText}>{ball}</Text>
+                                </View>
+                            ))}
+                        </View>
+                    </View>
+                </View>
 
-                            <Button mode='contained' onPress={() => score(3)} style={styles.scoreButton}>
-                                3
-                            </Button>
+                <View style={styles.buttonGrid}>
+                    <Button mode='contained' style={styles.scoreButton} contentStyle={styles.buttonContent} onPress={() => score(0)}>
+                        0
+                    </Button>
+                    <Button mode='contained' style={styles.scoreButton} contentStyle={styles.buttonContent} onPress={() => score(1)}>
+                        1
+                    </Button>
+                    <Button mode='contained' style={styles.scoreButton} contentStyle={styles.buttonContent} onPress={() => score(2)}>
+                        2
+                    </Button>
+                    <Button mode='contained' style={styles.scoreButton} contentStyle={styles.buttonContent} onPress={() => score(3)}>
+                        3
+                    </Button>
 
-                            <Button mode='contained' onPress={() => score(4)} style={styles.scoreButton}>
-                                4
-                            </Button>
+                    <Button mode='contained' style={styles.scoreButton} contentStyle={styles.buttonContent} onPress={() => score(4)}>
+                        4
+                    </Button>
+                    <Button mode='contained' style={styles.scoreButton} contentStyle={styles.buttonContent} onPress={() => score(6)}>
+                        6
+                    </Button>
+                    <Button mode='outlined' style={styles.scoreButton} contentStyle={styles.buttonContent} onPress={() => wide(1)}>
+                        WD
+                    </Button>
+                    <Button mode='contained-tonal' style={styles.scoreButton} contentStyle={styles.buttonContent} onPress={undo}>
+                        Undo
+                    </Button>
+                </View>
 
-                            <Button mode='contained' onPress={() => score(6)} style={styles.scoreButton}>
-                                6
-                            </Button>
+                <View>
+                    <View style={styles.actionBlock}>
+                        <View style={styles.noBallControls}>
+                            <TextInput
+                                mode='flat'
+                                value={noBallRunsInput}
+                                onChangeText={setNoBallRunsInput}
+                                keyboardType='number-pad'
+                                placeholder='Runs'
+                                style={styles.noBallInput}
+                            />
 
-                            <Button mode='outlined' onPress={() => wide(1)} style={styles.scoreButton}>
-                                Wide
-                            </Button>
-
-                            <Button mode='contained-tonal' onPress={undo} style={styles.scoreButton}>
-                                Undo
+                            <Button mode='text' onPress={submitNoBall} style={styles.noBallButton} contentStyle={styles.noBallButtonContent}>
+                                No Ball
                             </Button>
                         </View>
-                    </Card.Content>
-                </Card>
 
-                <Card>
-                    <Card.Content>
-                        <View style={styles.actionBlock}>
-                            <View style={styles.noBallControls}>
-                                <TextInput
-                                    mode='flat'
-                                    value={noBallRunsInput}
-                                    onChangeText={setNoBallRunsInput}
-                                    keyboardType='number-pad'
-                                    placeholder='Bat Runs'
-                                    style={styles.noBallInput}
-                                />
+                        <Button mode='contained' onPress={noBallRunOut} style={styles.fullWidthActionButton}>
+                            No Ball + Run Out
+                        </Button>
+                    </View>
+                </View>
 
-                                <Button mode='text' onPress={submitNoBall} style={styles.noBallButton} contentStyle={styles.noBallButtonContent}>
-                                    No Ball
-                                </Button>
-                            </View>
+                <View>
+                    <View style={styles.wicketSection}>
+                        <View style={styles.wicketControls}>
+                            <TextInput
+                                mode='flat'
+                                value={wicketRunsInput}
+                                onChangeText={setWicketRunsInput}
+                                keyboardType='number-pad'
+                                style={styles.wicketInput}
+                                placeholder='Completed Runs'
+                            />
 
-                            <Button mode='contained-tonal' onPress={noBallRunOut} style={styles.fullWidthActionButton}>
-                                No Ball + Run Out
+                            <Button mode='text' onPress={submitWicket} style={styles.wicketButton} contentStyle={styles.wicketButtonContent}>
+                                Wicket
                             </Button>
                         </View>
-                    </Card.Content>
-                </Card>
-
-                <Card>
-                    <Card.Content>
-                        <View style={styles.wicketSection}>
-                            <Text variant='labelLarge' style={styles.actionLabel}>
-                                Standard Wicket
-                            </Text>
-
-                            <View style={styles.wicketControls}>
-                                <TextInput
-                                    mode='flat'
-                                    label='Completed Runs'
-                                    value={wicketRunsInput}
-                                    onChangeText={setWicketRunsInput}
-                                    keyboardType='number-pad'
-                                    style={styles.wicketInput}
-                                />
-
-                                <Button mode='text' onPress={submitWicket} style={styles.wicketButton} contentStyle={styles.wicketButtonContent}>
-                                    Wicket
-                                </Button>
-                            </View>
-                        </View>
-                    </Card.Content>
-                </Card>
+                    </View>
+                </View>
             </ScrollView>
 
             <View style={styles.footer}>
@@ -329,11 +326,11 @@ export default function ScoringScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#fff",
+        backgroundColor: Colors.background,
     },
 
     divider: {
-        marginVertical: 12,
+        marginVertical: 8,
     },
 
     topPanelRow: {
@@ -342,27 +339,8 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
 
-    batsmanRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 10,
-    },
-
-    batsmanName: {
-        flex: 1,
-        fontSize: 16,
-        fontWeight: "500",
-    },
-
-    batsmanScore: {
-        fontSize: 16,
-        fontWeight: "600",
-        marginLeft: 12,
-    },
-
     bowlerScore: {
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: "600",
         marginLeft: 12,
     },
@@ -374,12 +352,10 @@ const styles = StyleSheet.create({
     lastSixRow: {
         flexDirection: "row",
         alignItems: "center",
-        marginTop: 8,
         gap: 10,
     },
 
     lastSixLabel: {
-        fontWeight: "600",
         minWidth: 48,
     },
 
@@ -402,16 +378,27 @@ const styles = StyleSheet.create({
         fontSize: 12,
     },
 
-    inlineAction: {
-        marginTop: 12,
+    swapStrikeRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
     },
 
-    actionSectionTitle: {
-        marginBottom: 12,
+    autoSwapCheckbox: {
+        flex: 1,
+        paddingHorizontal: 0,
+    },
+
+    autoSwapCheckboxLabel: {
+        fontSize: 14,
+    },
+
+    swapStrikeButton: {
+        marginLeft: 8,
+        borderRadius: 8,
     },
 
     actionBlock: {
-        marginTop: 14,
         gap: 10,
     },
 
@@ -424,26 +411,12 @@ const styles = StyleSheet.create({
         lineHeight: 18,
     },
 
-    buttonGrid: {
-        flexDirection: "row",
-
-        flexWrap: "wrap",
-
-        justifyContent: "space-between",
-
-        gap: 10,
-    },
-
-    scoreButton: {
-        width: "30%",
-    },
-
     noBallControls: {
         flex: 1,
         flexDirection: "row",
         alignItems: "stretch",
         borderWidth: 1,
-        borderColor: "#bdbdbd",
+        borderColor: Colors.darkGray,
         borderRadius: 8,
         overflow: "hidden",
         backgroundColor: "#fff",
@@ -451,20 +424,20 @@ const styles = StyleSheet.create({
 
     noBallInput: {
         flex: 1,
-        height: 48,
+        height: 40,
         backgroundColor: "transparent",
     },
 
     noBallButton: {
         flex: 1,
         borderLeftWidth: 1,
-        borderLeftColor: "#bdbdbd",
+        borderLeftColor: Colors.darkGray,
         borderRadius: 0,
         justifyContent: "center",
     },
 
     noBallButtonContent: {
-        height: 48,
+        height: 40,
     },
 
     wicketSection: {
@@ -476,7 +449,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "stretch",
         borderWidth: 1,
-        borderColor: "#bdbdbd",
+        borderColor: Colors.darkGray,
         borderRadius: 8,
         overflow: "hidden",
         backgroundColor: "#fff",
@@ -484,37 +457,77 @@ const styles = StyleSheet.create({
 
     wicketInput: {
         flex: 1,
-        height: 48,
+        height: 40,
         backgroundColor: "transparent",
     },
 
     wicketButton: {
         flex: 1,
         borderLeftWidth: 1,
-        borderLeftColor: "#bdbdbd",
+        borderLeftColor: Colors.darkGray,
         borderRadius: 0,
         justifyContent: "center",
     },
 
     wicketButtonContent: {
-        height: 48,
+        height: 40,
     },
 
     fullWidthActionButton: {
         width: "100%",
+        borderRadius: 8,
     },
 
     footer: {
         flexDirection: "row",
         gap: 10,
-        paddingHorizontal: 16,
-        paddingVertical: 10,
+        padding: Spacing.defaultSpace,
         borderTopWidth: 1,
-        borderTopColor: "#e0e0e0",
-        backgroundColor: "#fff",
+        borderTopColor: Colors.darkGray,
+        backgroundColor: Colors.white,
     },
 
     footerButton: {
         flex: 1,
+    },
+
+    buttonGrid: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        justifyContent: "space-between",
+    },
+
+    scoreButton: {
+        width: "23.5%",
+        marginBottom: 12,
+        borderRadius: 12,
+    },
+
+    buttonContent: {
+        height: 45,
+    },
+
+    batsmanRow: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 10,
+    },
+
+    batsmanName: {
+        fontSize: 14,
+    },
+
+    batsmanScore: {
+        fontSize: 14,
+    },
+
+    batsmanInfo: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+
+    batIcon: {
+        marginRight: 6,
     },
 });

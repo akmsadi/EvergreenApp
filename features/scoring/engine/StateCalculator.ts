@@ -24,7 +24,8 @@ class StateCalculator {
     private inningsBowlingRepository = InningsBowlingRepository;
 
     rebuild(
-        inningsId: number
+        inningsId: number,
+        autoSwapEnabled: boolean = true
     ): MatchState {
         // Get the innings record
         const innings = this.inningsRepository.find(inningsId);
@@ -290,7 +291,7 @@ class StateCalculator {
             // Strike rotation
             // ----------------------------
 
-            if (shouldSwapBatsman(delivery)) {
+            if (autoSwapEnabled && shouldSwapBatsman(delivery)) {
 
                 const rotated = rotateStrike(strikerId, nonStrikerId);
                 strikerId = rotated.strikerId;

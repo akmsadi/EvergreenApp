@@ -9,7 +9,8 @@ class MatchPlayerRepository {
             (match_id, player_id, team, is_captain, created_at, updated_at)
             VALUES
             (?, ?, ?, ?, ?, ?)
-            ON CONFLICT(match_id, player_id, team) DO UPDATE SET
+            ON CONFLICT(match_id, player_id) DO UPDATE SET
+                team = excluded.team,
                 is_captain = excluded.is_captain,
                 updated_at = excluded.updated_at
             `,
