@@ -9,8 +9,8 @@ export default function AddMatch() {
     const router = useRouter();
 
     const save = (match: MatchModel) => {
-        MatchRepository.save(match);
-        router.back();
+        const match_id = MatchRepository.save(match);
+        router.push(`/matches/${match_id}/players`);
     };
 
     return (

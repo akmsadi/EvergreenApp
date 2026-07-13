@@ -111,10 +111,16 @@ export default function MatchEditor({ initialMatch, onSave, onAddPlayers }: Matc
                     value={matchType}
                     onValueChange={setMatchType}
                     buttons={[
-                        { value: "t20", label: "T20" },
+                        { value: "t20", label: "T20", style: { borderRadius: 8 } },
                         { value: "odi", label: "ODI" },
-                        { value: "test", label: "Test" },
+                        { value: "test", label: "Test", style: { borderRadius: 8 } },
                     ]}
+                    theme={{
+                        colors: {
+                            secondaryContainer: Colors.primary,
+                            onSecondaryContainer: Colors.white,
+                        },
+                    }}
                 />
 
                 <TextInput label='Overs' mode='outlined' keyboardType='numeric' value={overs} onChangeText={setOvers} />
@@ -156,6 +162,7 @@ export default function MatchEditor({ initialMatch, onSave, onAddPlayers }: Matc
                         <Button
                             mode='contained-tonal'
                             icon='account-multiple-plus'
+                            style={{ borderRadius: 8 }}
                             onPress={() => {
                                 if (initialMatch && onAddPlayers) {
                                     onAddPlayers(initialMatch.id);
@@ -168,7 +175,7 @@ export default function MatchEditor({ initialMatch, onSave, onAddPlayers }: Matc
                 )}
 
                 <View style={styles.buttonWrapper}>
-                    <Button mode='contained' icon='content-save' onPress={handleSave}>
+                    <Button mode='contained' icon='content-save' onPress={handleSave} style={{ borderRadius: 8 }}>
                         Save
                     </Button>
                 </View>

@@ -8,25 +8,17 @@ import { Button, Card, Text } from "react-native-paper";
 
 export default function EndInningsScreen() {
     const router = useRouter();
-
     async function confirmEndInnings() {
         const { inningsNumber, matchId } = await ScoreEngine.endInnings();
-
         if (inningsNumber === 1) {
             router.replace({
                 pathname: "/scoring/second-innings",
                 params: { matchId },
             });
-
             return;
         }
-
         await ScoreEngine.finishMatch();
-
-        router.replace({
-            pathname: "/scoring/result",
-            params: { matchId },
-        });
+        router.push(`/matches/${matchId}/summary`);
     }
 
     return (

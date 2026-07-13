@@ -17,9 +17,8 @@ class MatchRepository {
         );
     }
 
-    save(match: MatchModel) {
-
-        db.runSync(
+    save(match: MatchModel): string | number {
+        const result = db.runSync(
             `
             INSERT OR REPLACE INTO matches
             (
@@ -43,9 +42,7 @@ class MatchRepository {
                 from_admin,
                 synced_at,
                 dirty
-            )
-            VALUES
-            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `,
             [
                 match.id,
@@ -70,6 +67,7 @@ class MatchRepository {
                 match.dirty,
             ]
         );
+        return match.id ?? result.lastInsertRowId;
     }
 
     saveMany(matches: MatchModel[]) {

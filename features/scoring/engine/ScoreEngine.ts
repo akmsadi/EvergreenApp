@@ -1217,6 +1217,9 @@ class ScoreEngine {
         let resultType: string;
         let resultSummary: string;
 
+        const teamName = (team: "team_a" | "team_b") =>
+            team === "team_a" ? match.team_name : match.opponent_name;
+
         if (innings.total_runs >= (innings.target_runs ?? 0)) {
 
             const wicketsLeft =
@@ -1225,7 +1228,7 @@ class ScoreEngine {
             resultType = "team_b_win";
 
             resultSummary =
-                `${innings.batting_team} won by ${wicketsLeft} wicket${wicketsLeft === 1 ? "" : "s"}`;
+                `${teamName(innings.batting_team)} won by ${wicketsLeft} wicket${wicketsLeft === 1 ? "" : "s"}`;
 
         } else if (innings.total_runs === firstInnings.total_runs) {
 
@@ -1242,7 +1245,7 @@ class ScoreEngine {
             resultType = "team_a_win";
 
             resultSummary =
-                `${firstInnings.batting_team} won by ${runs} run${runs === 1 ? "" : "s"}`;
+                `${teamName(firstInnings.batting_team)} won by ${runs} run${runs === 1 ? "" : "s"}`;
 
         }
 

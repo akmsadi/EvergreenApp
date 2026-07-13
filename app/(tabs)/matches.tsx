@@ -1,6 +1,7 @@
 import AppHeader from "@/components/AppHeader";
 import { Colors } from "@/constants/colors";
 import { MatchModel } from "@/database/models/MatchModel";
+import MatchPlayerRepository from "@/database/repositories/MatchPlayerRepository";
 import MatchRepository from "@/database/repositories/MatchRepository";
 import { formatDate } from "@/utils/Common";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -8,7 +9,8 @@ import React, { useCallback, useState } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import { Button } from "react-native-paper";
 
-function MatchCard({ match, onDelete }: { match: MatchModel; onDelete: (id: number) => void }) {
+function MatchCard({ match, onDelete, onCopy }: { match: MatchModel; onDelete: (id: number) => void; onCopy: (id: number) => void }) {
+    const router = useRouter();
     return (
         <View style={styles.item}>
             <View style={[styles.itemHeader]}>
@@ -17,10 +19,36 @@ function MatchCard({ match, onDelete }: { match: MatchModel; onDelete: (id: numb
             </View>
             <View style={styles.itemHeader}>
                 <Text style={styles.matchMeta}>{match.result_summary || "No result available"}</Text>
+            </View>
+
+            <View style={styles.actionRow}>
+                {!!match.result_summary && (
+                    <>
+                        <View style={styles.actionButton}>
+                            <Button
+                                mode='outlined'
+                                icon='text-box-outline'
+                                style={{ borderRadius: 8 }}
+                                compact
+                                onPress={() => router.push(`/matches/${match.id}/summary`)}
+                            >
+                                Summary
+                            </Button>
+                        </View>
+
+                        <View style={styles.actionButton}>
+                            <Button mode='contained' icon='content-copy' style={{ borderRadius: 8 }} compact onPress={() => onCopy(match.id)}>
+                                Copy
+                            </Button>
+                        </View>
+                    </>
+                )}
                 {match.match_status === "scheduled" && (
-                    <Button mode='contained' onPress={() => onDelete(match.id)}>
-                        Delete
-                    </Button>
+                    <View style={styles.actionButton}>
+                        <Button mode='contained' icon='delete' compact onPress={() => onDelete(match.id)}>
+                            Delete
+                        </Button>
+                    </View>
                 )}
             </View>
         </View>
@@ -46,6 +74,38 @@ export default function Matches() {
         setMatches(MatchRepository.getAll());
     };
 
+    const handleCopy = (id: number) => {
+        const source = MatchRepository.find(id);
+        if (!source) {
+            return;
+        }
+
+        const now = new Date().toISOString();
+        const newMatch: MatchModel = {
+            ...source,
+            id: Date.now(),
+            toss_winner: null,
+            toss_decision: null,
+            match_status: "scheduled",
+            result_type: null,
+            result_summary: null,
+            created_at: now,
+            updated_at: now,
+            deleted_at: null,
+            from_admin: 0,
+            synced_at: null,
+            dirty: 1,
+        };
+        MatchRepository.save(newMatch);
+        const players = MatchPlayerRepository.getByMatch(id);
+        const teamAIds = players.filter((p) => p.team === "team_a").map((p) => p.player_id);
+        const teamBIds = players.filter((p) => p.team === "team_b").map((p) => p.player_id);
+        const teamACaptain = players.find((p) => p.team === "team_a" && p.is_captain === 1)?.player_id ?? null;
+        const teamBCaptain = players.find((p) => p.team === "team_b" && p.is_captain === 1)?.player_id ?? null;
+        MatchPlayerRepository.saveAssignments(newMatch.id, teamAIds, teamBIds, teamACaptain, teamBCaptain);
+        router.push(`/matches/${newMatch.id}/edit`);
+    };
+
     return (
         <View style={styles.container}>
             <AppHeader title='Matches' rightIcon='plus' onRightPress={addMatch} />
@@ -60,7 +120,7 @@ export default function Matches() {
                         <Text style={styles.emptyText}>No matches available.</Text>
                     </View>
                 }
-                renderItem={({ item }) => <MatchCard match={item} onDelete={handleDelete} />}
+                renderItem={({ item }) => <MatchCard match={item} onDelete={handleDelete} onCopy={handleCopy} />}
             />
         </View>
     );
@@ -84,8 +144,13 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
 
+    actions: {
+        flexDirection: "row",
+        gap: 8,
+    },
+
     matchTitle: {
-        fontSize: 14,
+        fontSize: 16,
         color: Colors.black,
     },
 
@@ -97,13 +162,12 @@ const styles = StyleSheet.create({
 
     matchMeta: {
         color: "#444",
-        fontSize: 14,
+        fontSize: 12,
     },
 
     separator: {
         height: 1,
-        backgroundColor: "#eee",
-        marginLeft: 20,
+        backgroundColor: Colors.darkGray,
     },
 
     listContent: {
@@ -118,5 +182,14 @@ const styles = StyleSheet.create({
     emptyText: {
         color: "#888",
         fontSize: 16,
+    },
+    actionRow: {
+        flexDirection: "row",
+        gap: 8,
+        marginTop: 6,
+    },
+
+    actionButton: {
+        flex: 1,
     },
 });

@@ -107,13 +107,7 @@ export default function MatchPlayersScreen() {
         }
 
         const matchId = Number(id);
-        MatchPlayerRepository.saveAssignments(
-            matchId,
-            teamAIds,
-            teamBIds,
-            teamACaptain ?? null,
-            teamBCaptain ?? null,
-        );
+        MatchPlayerRepository.saveAssignments(matchId, teamAIds, teamBIds, teamACaptain ?? null, teamBCaptain ?? null);
         router.back();
     };
 
@@ -123,12 +117,6 @@ export default function MatchPlayersScreen() {
 
             <View style={styles.content}>
                 <View style={styles.contentContainer}>
-                    <View style={styles.matchupHeader}>
-                        <Text style={styles.matchupTitle}>
-                            {teamATitle} VS {teamBTitle}
-                        </Text>
-                    </View>
-
                     <SegmentedButtons
                         value={activeTeam}
                         onValueChange={(value) => setActiveTeam(value as TeamKey)}
@@ -184,7 +172,7 @@ export default function MatchPlayersScreen() {
                 </View>
 
                 <View style={styles.footer}>
-                    <Button mode='contained' onPress={handleSave} style={styles.saveButton}>
+                    <Button mode='contained' onPress={handleSave} style={{ borderRadius: 8 }}>
                         Save
                     </Button>
                 </View>
@@ -272,7 +260,7 @@ const styles = StyleSheet.create({
 
     contentContainer: {
         flex: 1,
-        paddingHorizontal: Spacing.defaultSpace,
+        padding: Spacing.defaultSpace,
         gap: Spacing.defaultSpace,
     },
 
@@ -379,12 +367,10 @@ const styles = StyleSheet.create({
     },
 
     footer: {
-        paddingHorizontal: Spacing.defaultSpace,
-        paddingTop: 8,
-        paddingBottom: Spacing.defaultSpace,
-    },
-
-    saveButton: {
-        marginTop: 8,
+        marginTop: "auto",
+        padding: Spacing.defaultSpace,
+        backgroundColor: Colors.white,
+        borderTopWidth: 1,
+        borderTopColor: Colors.darkGray,
     },
 });

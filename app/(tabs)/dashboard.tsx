@@ -149,7 +149,7 @@ export default function DashboardScreen() {
                 )}
             </ScrollView>
 
-            <FAB icon='plus' label='New Match' onPress={() => router.push("/matches/add")} style={styles.fab} />
+            <FAB icon='plus' label='New Match' size='small' onPress={() => router.push("/matches/add")} style={styles.fab} />
         </View>
     );
 }
@@ -254,10 +254,9 @@ const styles = StyleSheet.create({
 
     matchCard: {
         backgroundColor: Colors.white,
-        borderRadius: 14,
+        borderRadius: 8,
         marginBottom: 18,
         overflow: "hidden",
-
         shadowColor: "#000",
         shadowOpacity: 0.08,
         shadowRadius: 8,
@@ -267,7 +266,7 @@ const styles = StyleSheet.create({
         },
         elevation: 4,
         borderWidth: 1,
-        borderColor: Colors.gray,
+        borderColor: Colors.darkGray,
     },
 
     teamRow: {
@@ -286,7 +285,7 @@ const styles = StyleSheet.create({
         width: 64,
         height: 64,
         borderRadius: 32,
-        backgroundColor: "#F1F3F4",
+        backgroundColor: Colors.background,
         justifyContent: "center",
         alignItems: "center",
         marginBottom: 10,
@@ -329,14 +328,12 @@ const styles = StyleSheet.create({
 
     divider: {
         height: 1,
-        backgroundColor: "#E5E5E5",
-        marginHorizontal: 16,
+        backgroundColor: Colors.darkGray,
     },
 
     actionRow: {
         flexDirection: "row",
         alignItems: "stretch",
-        marginTop: 2,
     },
 
     actionItem: {
@@ -345,7 +342,7 @@ const styles = StyleSheet.create({
 
     verticalDivider: {
         width: 1,
-        backgroundColor: "#E5E5E5",
+        backgroundColor: Colors.darkGray,
     },
 
     fullButton: {

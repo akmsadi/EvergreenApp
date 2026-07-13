@@ -10,7 +10,7 @@ import InningsRepository from "@/features/scoring/repositories/InningsRepository
 import { DismissalType } from "@/features/scoring/types/DismissalType";
 
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { ScrollView, StyleSheet } from "react-native";
 import { Button, Card, Text } from "react-native-paper";
 
@@ -35,11 +35,7 @@ export default function WicketScreen() {
     const [bowlerName, setBowlerName] = useState<string | undefined>();
     const [fielderName, setFielderName] = useState<string | undefined>();
 
-    useEffect(() => {
-        void loadScreen();
-    }, []);
-
-    async function loadScreen() {
+    const loadScreen = useCallback(async () => {
         const scoreboard = await ScoreEngine.getScoreboard();
         const innings = InningsRepository.find(scoreboard.inningsId);
         const lastDelivery = DeliveryRepository.findLast(scoreboard.inningsId);
@@ -112,7 +108,11 @@ export default function WicketScreen() {
         }
 
         setPlayers(list);
-    }
+    }, []);
+
+    useEffect(() => {
+        void loadScreen();
+    }, [loadScreen]);
 
     function formatDismissal(dismissalType?: string | null) {
         if (!dismissalType) {
@@ -197,12 +197,7 @@ export default function WicketScreen() {
             return;
         }
 
-        await ScoreEngine.resolveWicket(
-            selectedPlayerId,
-            selectedDismissedPlayerId,
-            selectedDismissalType as DismissalType,
-            selectedFielderId || undefined,
-        );
+        await ScoreEngine.resolveWicket(selectedPlayerId, selectedDismissedPlayerId, selectedDismissalType as DismissalType, selectedFielderId || undefined);
 
         if (ScoreEngine.isEndOfOver()) {
             router.replace("/scoring/bowler");
@@ -217,24 +212,6 @@ export default function WicketScreen() {
             <AppHeader title='New Batsman' showBack />
 
             <ScrollView contentContainerStyle={styles.container}>
-                <Card>
-                    <Card.Content>
-                        <Text variant='titleMedium' style={styles.sectionTitle}>
-                            Incoming Batsman
-                        </Text>
-
-                        <AppSelect
-                            label='Select Batsman'
-                            value={players.find((player) => String(player.id) === selectedPlayerId)?.name ?? ""}
-                            options={players.map((player) => ({
-                                label: player.name,
-                                value: String(player.id),
-                            }))}
-                            onChange={setSelectedPlayerId}
-                        />
-                    </Card.Content>
-                </Card>
-
                 <Card>
                     <Card.Content>
                         <Text variant='titleMedium' style={styles.sectionTitle}>
@@ -267,12 +244,14 @@ export default function WicketScreen() {
                             label='Dismissal Type'
                             value={formatDismissal(selectedDismissalType)}
                             options={[
+                                { label: "Please select", value: "" },
                                 { label: "Bowled", value: DismissalType.BOWLED },
                                 { label: "Caught", value: DismissalType.CAUGHT },
-                                { label: "Lbw", value: DismissalType.LBW },
                                 { label: "Run Out", value: DismissalType.RUN_OUT },
                                 { label: "Stumped", value: DismissalType.STUMPED },
                                 { label: "Retired Hurt", value: DismissalType.RETIRED_HURT },
+                                { label: "Hit Wicket", value: DismissalType.HIT_WICKET },
+                                { label: "Lbw", value: DismissalType.LBW },
                             ]}
                             onChange={onDismissalTypeChange}
                         />
@@ -288,6 +267,24 @@ export default function WicketScreen() {
                                 onChange={onFielderChange}
                             />
                         ) : null}
+                    </Card.Content>
+                </Card>
+
+                <Card>
+                    <Card.Content>
+                        <Text variant='titleMedium' style={styles.sectionTitle}>
+                            Incoming Batsman
+                        </Text>
+
+                        <AppSelect
+                            label='Select Batsman'
+                            value={players.find((player) => String(player.id) === selectedPlayerId)?.name ?? ""}
+                            options={players.map((player) => ({
+                                label: player.name,
+                                value: String(player.id),
+                            }))}
+                            onChange={setSelectedPlayerId}
+                        />
                     </Card.Content>
                 </Card>
 

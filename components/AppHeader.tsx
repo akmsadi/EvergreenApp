@@ -9,7 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 interface AppHeaderProps {
     title: string;
     subtitle?: string;
-    showBack?: boolean;
+    showBack?: boolean | string;
     rightIcon?: string;
     onRightPress?: () => void;
 }
@@ -23,7 +23,13 @@ export default function AppHeader({ title, subtitle, showBack = false, rightIcon
                 <View style={styles.left}>
                     {showBack && (
                         <Pressable
-                            onPress={() => router.back()}
+                            onPress={() => {
+                                if (typeof showBack === "string") {
+                                    router.replace(showBack as any); // or router.push(showBack as any)
+                                } else {
+                                    router.back();
+                                }
+                            }}
                             style={{
                                 width: 40,
                                 height: 40,

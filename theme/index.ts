@@ -5,8 +5,6 @@ export const theme = {
     colors: {
         ...MD3LightTheme.colors,
         primary: "#226025",
-        // secondary: "#4CAF50",
-        // tertiary: "#FF9800",
         secondaryContainer: "#FF9800",
     },
 };

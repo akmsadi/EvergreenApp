@@ -186,7 +186,7 @@ export default function ScoringScreen() {
                     <View style={styles.batsmanRow}>
                         <View style={styles.batsmanInfo}>
                             <MaterialCommunityIcons name='cricket' size={18} color='#2E7D32' style={styles.batIcon} />
-                            <Text style={styles.batsmanName}>{scoreboard?.nonStrikerName ?? "Unknown"}</Text>
+                            <Text style={styles.batsmanName}>{scoreboard?.strikerName ?? "Unknown"} *</Text>
                         </View>
                         <Text style={styles.batsmanScore}>{strikerStats ? `${strikerStats.runs} (${strikerStats.balls})` : "0 (0)"}</Text>
                     </View>
@@ -194,7 +194,7 @@ export default function ScoringScreen() {
                     <View style={styles.batsmanRow}>
                         <View style={styles.batsmanInfo}>
                             <MaterialCommunityIcons name='cricket' size={18} color='#2E7D32' style={styles.batIcon} />
-                            <Text style={styles.batsmanName}>{scoreboard?.strikerName ?? "Unknown"}</Text>
+                            <Text style={styles.batsmanName}>{scoreboard?.nonStrikerName ?? "Unknown"}</Text>
                         </View>
                         <Text style={styles.batsmanScore}>{nonStrikerStats ? `${nonStrikerStats.runs} (${nonStrikerStats.balls})` : "0 (0)"}</Text>
                     </View>
@@ -489,6 +489,7 @@ const styles = StyleSheet.create({
 
     footerButton: {
         flex: 1,
+        borderRadius: 8,
     },
 
     buttonGrid: {
