@@ -8,6 +8,7 @@ import { Colors } from "@/constants/colors";
 import { Spacing } from "@/constants/spacing";
 import { MatchModel } from "@/database/models/MatchModel";
 import VenueRepository from "@/database/repositories/VenueRepository";
+import SyncService from "@/services/SyncService";
 import { formatDatabaseDate } from "@/utils/Common";
 
 type MatchEditorProps = {
@@ -155,6 +156,20 @@ export default function MatchEditor({ initialMatch, onSave, onAddPlayers }: Matc
                 />
 
                 <TextInput label='Notes' mode='outlined' multiline numberOfLines={4} value={notes} onChangeText={setNotes} />
+
+                <View style={styles.syncButtonContainer}>
+                    <Button
+                        mode='outlined'
+                        icon='sync'
+                        style={{ borderRadius: 8 }}
+                        onPress={async () => {
+                            await SyncService.syncVenues();
+                            loadVenues();
+                        }}
+                    >
+                        Sync Venues
+                    </Button>
+                </View>
             </ScrollView>
             <View style={styles.bottomButtons}>
                 {initialMatch && onAddPlayers && (
@@ -197,7 +212,6 @@ const styles = StyleSheet.create({
 
     venueDropdown: {
         flex: 1,
-        marginRight: 8,
     },
 
     dateGroup: {
@@ -232,5 +246,9 @@ const styles = StyleSheet.create({
 
     buttonWrapper: {
         flex: 1,
+    },
+
+    syncButtonContainer: {
+        marginTop: 8,
     },
 });

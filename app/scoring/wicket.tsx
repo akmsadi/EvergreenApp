@@ -1,5 +1,4 @@
 import AppHeader from "@/components/AppHeader";
-import AppSelect from "@/components/AppSelect";
 
 import MatchPlayerRepository from "@/database/repositories/MatchPlayerRepository";
 import PlayerRepository from "@/database/repositories/PlayerRepository";
@@ -9,10 +8,11 @@ import DeliveryRepository from "@/features/scoring/repositories/DeliveryReposito
 import InningsRepository from "@/features/scoring/repositories/InningsRepository";
 import { DismissalType } from "@/features/scoring/types/DismissalType";
 
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { ScrollView, StyleSheet } from "react-native";
 import { Button, Card, Text } from "react-native-paper";
+import { Dropdown } from "react-native-paper-dropdown";
 
 interface PlayerItem {
     id: string;
@@ -21,7 +21,7 @@ interface PlayerItem {
 
 export default function WicketScreen() {
     const router = useRouter();
-
+    const { pendingRuns } = useLocalSearchParams<{ pendingRuns?: string }>();
     const [players, setPlayers] = useState<PlayerItem[]>([]);
     const [selectedPlayerId, setSelectedPlayerId] = useState<string>("");
     const [dismissedPlayers, setDismissedPlayers] = useState<PlayerItem[]>([]);
@@ -29,11 +29,6 @@ export default function WicketScreen() {
     const [selectedDismissedPlayerId, setSelectedDismissedPlayerId] = useState<string>("");
     const [selectedDismissalType, setSelectedDismissalType] = useState<string>(DismissalType.BOWLED);
     const [selectedFielderId, setSelectedFielderId] = useState<string>("");
-    const [dismissedBatsmanName, setDismissedBatsmanName] = useState("Unknown");
-    const [dismissalLabel, setDismissalLabel] = useState("Wicket");
-    const [dismissalDetail, setDismissalDetail] = useState("");
-    const [bowlerName, setBowlerName] = useState<string | undefined>();
-    const [fielderName, setFielderName] = useState<string | undefined>();
 
     const loadScreen = useCallback(async () => {
         const scoreboard = await ScoreEngine.getScoreboard();
@@ -46,16 +41,7 @@ export default function WicketScreen() {
 
         if (lastDelivery) {
             const dismissedPlayerId = lastDelivery.dismissed_player_id ?? lastDelivery.batsman_id;
-            const dismissedPlayer = PlayerRepository.find(dismissedPlayerId);
-            const bowler = PlayerRepository.find(lastDelivery.bowler_id);
             const fielder = lastDelivery.fielder_id ? PlayerRepository.find(lastDelivery.fielder_id) : null;
-
-            setBowlerName(bowler?.name);
-            setFielderName(fielder?.name);
-
-            setDismissedBatsmanName(dismissedPlayer?.name ?? "Unknown");
-            setDismissalLabel(formatDismissal(lastDelivery.dismissal_type));
-            setDismissalDetail(buildDismissalDetail(lastDelivery.dismissal_type, bowler?.name, fielder?.name));
             setSelectedDismissedPlayerId(String(dismissedPlayerId));
             setSelectedDismissalType(lastDelivery.dismissal_type ?? DismissalType.BOWLED);
             setSelectedFielderId(fielder ? String(fielder.id) : "");
@@ -114,82 +100,25 @@ export default function WicketScreen() {
         void loadScreen();
     }, [loadScreen]);
 
-    function formatDismissal(dismissalType?: string | null) {
-        if (!dismissalType) {
-            return "Wicket";
-        }
-
-        return dismissalType
-            .replaceAll("_", " ")
-            .toLowerCase()
-            .replace(/(^|\s)\S/g, (char) => char.toUpperCase());
-    }
-
-    function buildDismissalDetail(dismissalType?: string | null, bowlerName?: string, fielderName?: string) {
-        switch (dismissalType) {
-            case DismissalType.BOWLED:
-                return bowlerName ? `b ${bowlerName}` : "Bowled";
-            case DismissalType.CAUGHT:
-                if (bowlerName && fielderName && bowlerName === fielderName) {
-                    return `C & B ${bowlerName}`;
-                }
-
-                if (fielderName && bowlerName) {
-                    return `c ${fielderName} b ${bowlerName}`;
-                }
-
-                return "Caught";
-            case DismissalType.LBW:
-                return bowlerName ? `lbw b ${bowlerName}` : "Lbw";
-            case DismissalType.RUN_OUT:
-                return fielderName ? `run out (${fielderName})` : "Run Out";
-            case DismissalType.STUMPED:
-                if (fielderName && bowlerName) {
-                    return `st ${fielderName} b ${bowlerName}`;
-                }
-
-                return "Stumped";
-            case DismissalType.RETIRED_HURT:
-                return "Retired Hurt";
-            default:
-                return "";
-        }
-    }
-
     function requiresFielder(dismissalType?: string | null) {
         return dismissalType === DismissalType.CAUGHT || dismissalType === DismissalType.RUN_OUT || dismissalType === DismissalType.STUMPED;
     }
 
     function onDismissedPlayerChange(value: string) {
         setSelectedDismissedPlayerId(value);
-
-        const selectedPlayer = dismissedPlayers.find((player) => String(player.id) === value);
-
-        setDismissedBatsmanName(selectedPlayer?.name ?? "Unknown");
     }
 
     function onDismissalTypeChange(value: string) {
         setSelectedDismissalType(value);
-        setDismissalLabel(formatDismissal(value));
 
         if (!requiresFielder(value)) {
             setSelectedFielderId("");
-            setFielderName(undefined);
-            setDismissalDetail(buildDismissalDetail(value, bowlerName, undefined));
             return;
         }
-
-        setDismissalDetail(buildDismissalDetail(value, bowlerName, fielderName));
     }
 
     function onFielderChange(value: string) {
         setSelectedFielderId(value);
-
-        const selectedPlayer = fielderPlayers.find((player) => String(player.id) === value);
-        const nextFielderName = selectedPlayer?.name;
-
-        setFielderName(nextFielderName);
-        setDismissalDetail(buildDismissalDetail(selectedDismissalType, bowlerName, nextFielderName));
     }
 
     async function onContinue() {
@@ -197,7 +126,22 @@ export default function WicketScreen() {
             return;
         }
 
-        await ScoreEngine.resolveWicket(selectedPlayerId, selectedDismissedPlayerId, selectedDismissalType as DismissalType, selectedFielderId || undefined);
+        if (pendingRuns !== undefined) {
+            await ScoreEngine.recordWicket(
+                Number(pendingRuns),
+                selectedDismissedPlayerId,
+                selectedDismissalType as DismissalType,
+                selectedPlayerId,
+                selectedFielderId || undefined,
+            );
+        } else {
+            await ScoreEngine.resolveWicket(
+                selectedPlayerId,
+                selectedDismissedPlayerId,
+                selectedDismissalType as DismissalType,
+                selectedFielderId || undefined,
+            );
+        }
 
         if (ScoreEngine.isEndOfOver()) {
             router.replace("/scoring/bowler");
@@ -217,18 +161,17 @@ export default function WicketScreen() {
                         <Text variant='titleMedium' style={styles.sectionTitle}>
                             Dismissed Batsman
                         </Text>
-
-                        <AppSelect
-                            label='Who got out?'
-                            value={dismissedPlayers.find((player) => String(player.id) === selectedDismissedPlayerId)?.name ?? ""}
+                        <Dropdown
+                            mode='outlined'
+                            value={selectedDismissedPlayerId}
                             options={dismissedPlayers.map((player) => ({
                                 label: player.name,
                                 value: String(player.id),
                             }))}
-                            onChange={onDismissedPlayerChange}
+                            onSelect={(value) => {
+                                onDismissedPlayerChange(value ?? "");
+                            }}
                         />
-
-                        <Text style={styles.metaText}>{dismissalLabel}</Text>
                     </Card.Content>
                 </Card>
 
@@ -238,33 +181,35 @@ export default function WicketScreen() {
                             How Got Out
                         </Text>
 
-                        <Text style={styles.metaText}>Bowler: {bowlerName ?? "Unknown"}</Text>
-
-                        <AppSelect
-                            label='Dismissal Type'
-                            value={formatDismissal(selectedDismissalType)}
+                        <Dropdown
+                            mode='outlined'
+                            value={selectedDismissalType}
                             options={[
-                                { label: "Please select", value: "" },
                                 { label: "Bowled", value: DismissalType.BOWLED },
                                 { label: "Caught", value: DismissalType.CAUGHT },
                                 { label: "Run Out", value: DismissalType.RUN_OUT },
                                 { label: "Stumped", value: DismissalType.STUMPED },
                                 { label: "Retired Hurt", value: DismissalType.RETIRED_HURT },
                                 { label: "Hit Wicket", value: DismissalType.HIT_WICKET },
-                                { label: "Lbw", value: DismissalType.LBW },
+                                { label: "LBW", value: DismissalType.LBW },
                             ]}
-                            onChange={onDismissalTypeChange}
+                            onSelect={(value) => {
+                                onDismissalTypeChange(value ?? "");
+                            }}
                         />
 
                         {requiresFielder(selectedDismissalType) ? (
-                            <AppSelect
+                            <Dropdown
                                 label='Fielder'
-                                value={fielderPlayers.find((player) => String(player.id) === selectedFielderId)?.name ?? ""}
+                                mode='outlined'
+                                value={selectedFielderId}
                                 options={fielderPlayers.map((player) => ({
                                     label: player.name,
                                     value: String(player.id),
                                 }))}
-                                onChange={onFielderChange}
+                                onSelect={(value) => {
+                                    onFielderChange(value ?? "");
+                                }}
                             />
                         ) : null}
                     </Card.Content>
@@ -276,27 +221,16 @@ export default function WicketScreen() {
                             Incoming Batsman
                         </Text>
 
-                        <AppSelect
+                        <Dropdown
                             label='Select Batsman'
-                            value={players.find((player) => String(player.id) === selectedPlayerId)?.name ?? ""}
+                            mode='outlined'
+                            value={selectedPlayerId}
                             options={players.map((player) => ({
                                 label: player.name,
                                 value: String(player.id),
                             }))}
-                            onChange={setSelectedPlayerId}
+                            onSelect={(value) => setSelectedPlayerId(value ?? "")}
                         />
-                    </Card.Content>
-                </Card>
-
-                <Card>
-                    <Card.Content>
-                        <Text variant='titleMedium' style={styles.sectionTitle}>
-                            Wicket Details
-                        </Text>
-
-                        <Text>{dismissedBatsmanName}</Text>
-                        <Text style={styles.metaText}>{dismissalLabel}</Text>
-                        {dismissalDetail ? <Text style={styles.metaText}>{dismissalDetail}</Text> : null}
                     </Card.Content>
                 </Card>
 
@@ -330,5 +264,6 @@ const styles = StyleSheet.create({
 
     button: {
         marginTop: 8,
+        borderRadius: 8,
     },
 });

@@ -94,23 +94,19 @@ export default function ScoringScreen() {
         setNoBallRunsInput("0");
     }
 
-    async function submitWicket() {
+    function submitWicket() {
         const parsedRuns = Number(wicketRunsInput);
 
         if (!Number.isFinite(parsedRuns) || parsedRuns < 0) {
             return;
         }
 
-        await ScoreEngine.scoreBall({
-            runs: parsedRuns,
-
-            isWicket: true,
-        });
-
-        await loadScoreboard();
         setWicketRunsInput("0");
 
-        router.push("/scoring/wicket");
+        router.push({
+            pathname: "/scoring/wicket",
+            params: { pendingRuns: String(parsedRuns) },
+        });
     }
 
     async function noBallRunOut() {
@@ -199,7 +195,7 @@ export default function ScoringScreen() {
                         <Text style={styles.batsmanScore}>{nonStrikerStats ? `${nonStrikerStats.runs} (${nonStrikerStats.balls})` : "0 (0)"}</Text>
                     </View>
 
-                    <Divider style={styles.divider} />
+                    <Divider style={[styles.divider, { marginBottom: 16 }]} />
 
                     <View style={styles.batsmanRow}>
                         <View style={styles.batsmanInfo}>
@@ -228,7 +224,7 @@ export default function ScoringScreen() {
                     </View>
 
                     <View style={styles.lastSixRow}>
-                        <Text style={styles.lastSixLabel}>Last 6</Text>
+                        <Text style={styles.lastSixLabel}>Last 6 balls:</Text>
                         <View style={styles.lastSixBallsWrap}>
                             {(lastSixBalls.length > 0 ? lastSixBalls : ["-"]).map((ball, index) => (
                                 <View key={`${ball}-${index}`} style={styles.ballChip}>
@@ -238,6 +234,8 @@ export default function ScoringScreen() {
                         </View>
                     </View>
                 </View>
+
+                <Divider style={styles.divider} />
 
                 <View style={styles.buttonGrid}>
                     <Button mode='contained' style={styles.scoreButton} contentStyle={styles.buttonContent} onPress={() => score(0)}>
@@ -252,7 +250,6 @@ export default function ScoringScreen() {
                     <Button mode='contained' style={styles.scoreButton} contentStyle={styles.buttonContent} onPress={() => score(3)}>
                         3
                     </Button>
-
                     <Button mode='contained' style={styles.scoreButton} contentStyle={styles.buttonContent} onPress={() => score(4)}>
                         4
                     </Button>
@@ -267,27 +264,25 @@ export default function ScoringScreen() {
                     </Button>
                 </View>
 
-                <View>
-                    <View style={styles.actionBlock}>
-                        <View style={styles.noBallControls}>
-                            <TextInput
-                                mode='flat'
-                                value={noBallRunsInput}
-                                onChangeText={setNoBallRunsInput}
-                                keyboardType='number-pad'
-                                placeholder='Runs'
-                                style={styles.noBallInput}
-                            />
+                <View style={styles.actionBlock}>
+                    <View style={styles.noBallControls}>
+                        <TextInput
+                            mode='flat'
+                            value={noBallRunsInput}
+                            onChangeText={setNoBallRunsInput}
+                            keyboardType='number-pad'
+                            placeholder='Runs'
+                            style={styles.noBallInput}
+                        />
 
-                            <Button mode='text' onPress={submitNoBall} style={styles.noBallButton} contentStyle={styles.noBallButtonContent}>
-                                No Ball
-                            </Button>
-                        </View>
-
-                        <Button mode='contained' onPress={noBallRunOut} style={styles.fullWidthActionButton}>
-                            No Ball + Run Out
+                        <Button mode='text' onPress={submitNoBall} style={styles.noBallButton} contentStyle={styles.noBallButtonContent}>
+                            No Ball
                         </Button>
                     </View>
+
+                    <Button mode='contained' onPress={noBallRunOut} style={styles.fullWidthActionButton}>
+                        No Ball + Run Out
+                    </Button>
                 </View>
 
                 <View>
@@ -419,7 +414,7 @@ const styles = StyleSheet.create({
         borderColor: Colors.darkGray,
         borderRadius: 8,
         overflow: "hidden",
-        backgroundColor: "#fff",
+        backgroundColor: Colors.white,
     },
 
     noBallInput: {
@@ -500,8 +495,8 @@ const styles = StyleSheet.create({
 
     scoreButton: {
         width: "23.5%",
-        marginBottom: 12,
-        borderRadius: 12,
+        marginBottom: 8,
+        borderRadius: 8,
     },
 
     buttonContent: {

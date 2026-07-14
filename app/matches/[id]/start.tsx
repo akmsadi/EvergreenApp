@@ -1,5 +1,4 @@
 import AppHeader from "@/components/AppHeader";
-import AppSelect from "@/components/AppSelect";
 import { Colors } from "@/constants/colors";
 import { Spacing } from "@/constants/spacing";
 
@@ -14,6 +13,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Button, Card, Text } from "react-native-paper";
+import { Dropdown } from "react-native-paper-dropdown";
 
 export default function StartMatchScreen() {
     const router = useRouter();
@@ -38,32 +38,12 @@ export default function StartMatchScreen() {
     const [bowlerId, setBowlerId] = useState<string>();
 
     useEffect(() => {
-        load();
-    }, []);
-
-    function load() {
-        const m = MatchRepository.find(matchId);
-
-        setMatch(m);
-
         const a = MatchPlayerRepository.getTeamPlayers(matchId, "team_a");
-
         const b = MatchPlayerRepository.getTeamPlayers(matchId, "team_b");
-
-        setTeamAPlayers(
-            a
-                .map((id) => PlayerRepository.find(id))
-
-                .filter(Boolean),
-        );
-
-        setTeamBPlayers(
-            b
-                .map((id) => PlayerRepository.find(id))
-
-                .filter(Boolean),
-        );
-    }
+        setMatch(MatchRepository.find(matchId));
+        setTeamAPlayers(a.map((id) => PlayerRepository.find(id)).filter(Boolean));
+        setTeamBPlayers(b.map((id) => PlayerRepository.find(id)).filter(Boolean));
+    }, [matchId]);
 
     const battingPlayers = useMemo(() => {
         const battingTeam = decision === "bat" ? tossWinner : tossWinner === "team_a" ? "team_b" : "team_a";
@@ -189,100 +169,92 @@ export default function StartMatchScreen() {
     return (
         <View style={styles.container}>
             <AppHeader title='Start Match' />
+            <View style={styles.matchCard}>
+                <View style={styles.matchRow}>
+                    <Text style={styles.matchTitle}>
+                        {match?.team_name ?? "Team A"} vs {match?.opponent_name ?? "Team B"}
+                    </Text>
+
+                    <Text style={styles.matchDate}>{scheduledDateLabel}</Text>
+                </View>
+
+                <View style={styles.matchRow}>
+                    <Text style={styles.matchInfo}>
+                        {match?.match_type?.toUpperCase?.() ?? "MATCH"} • {match?.format_overs ?? "-"} Overs
+                    </Text>
+                    <Text style={styles.venue}>Venue: {match?.venue ?? "TBA"}</Text>
+                </View>
+            </View>
+
+            <View style={styles.divider} />
 
             <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
                 <Card style={{ backgroundColor: Colors.white, marginBottom: 8 }}>
                     <Card.Content>
-                        <Text variant='titleMedium' style={styles.cardTitle}>
-                            Match Details
-                        </Text>
-
-                        <View style={styles.matchRow}>
-                            <Text style={styles.matchTitle}>
-                                {match?.team_name ?? "Team A"} vs {match?.opponent_name ?? "Team B"}
-                            </Text>
-
-                            <Text style={styles.matchDate}>{scheduledDateLabel}</Text>
-                        </View>
-
-                        <View style={styles.matchRow}>
-                            <Text style={styles.matchInfo}>
-                                {match?.match_type?.toUpperCase?.() ?? "MATCH"} • {match?.format_overs ?? "-"} Overs
-                            </Text>
-
-                            <Text style={styles.matchStatus}>{match?.match_status ?? "scheduled"}</Text>
-                        </View>
-                    </Card.Content>
-                </Card>
-
-                <Card style={{ backgroundColor: Colors.white, marginBottom: 8 }}>
-                    <Card.Content>
-                        <Text variant='titleMedium' style={styles.cardTitle}>
+                        <Text variant='titleMedium' style={{ marginBottom: 8 }}>
                             Toss
                         </Text>
 
-                        <View style={styles.tossRow}>
-                            <View style={styles.tossCol}>
-                                <AppSelect
-                                    label='Winner'
-                                    value={tossWinnerOptions.find((option) => option.value === tossWinner)?.label ?? ""}
-                                    options={tossWinnerOptions}
-                                    onChange={(value) => setTossWinner(value as "team_a" | "team_b")}
-                                />
-                            </View>
-
-                            <View style={styles.tossCol}>
-                                <AppSelect
-                                    label='Decision'
-                                    value={decisionOptions.find((option) => option.value === decision)?.label ?? ""}
-                                    options={decisionOptions}
-                                    onChange={(value) => setDecision(value as "bat" | "bowl")}
-                                />
-                            </View>
+                        <View style={{ marginBottom: 12 }}>
+                            <Dropdown
+                                label='Winner'
+                                mode='outlined'
+                                value={tossWinner}
+                                options={tossWinnerOptions}
+                                onSelect={(value) => {
+                                    if (value) {
+                                        setTossWinner(value as "team_a" | "team_b");
+                                    }
+                                }}
+                            />
                         </View>
-                    </Card.Content>
-                </Card>
-
-                <Card style={{ backgroundColor: Colors.white, marginBottom: 8 }}>
-                    <Card.Content>
-                        <Text variant='titleMedium' style={styles.cardTitle}>
-                            Opening Batsman
-                        </Text>
-
-                        <AppSelect
-                            label='Striker'
-                            value={strikerOptions.find((option) => option.value === strikerId)?.label ?? ""}
-                            options={strikerOptions}
-                            onChange={(value) => {
-                                setStrikerId(value);
-
-                                if (value === nonStrikerId) {
-                                    setNonStrikerId(undefined);
+                        <Dropdown
+                            label='Decision'
+                            mode='outlined'
+                            value={decision}
+                            options={decisionOptions}
+                            onSelect={(value) => {
+                                if (value) {
+                                    setDecision(value as "bat" | "bowl");
                                 }
                             }}
                         />
-
-                        <AppSelect
-                            label='Non-striker'
-                            value={nonStrikerOptions.find((option) => option.value === nonStrikerId)?.label ?? ""}
-                            options={nonStrikerOptions}
-                            onChange={setNonStrikerId}
-                        />
                     </Card.Content>
                 </Card>
 
                 <Card style={{ backgroundColor: Colors.white, marginBottom: 8 }}>
                     <Card.Content>
-                        <Text variant='titleMedium' style={styles.cardTitle}>
+                        <Text variant='titleMedium' style={{ marginBottom: 8 }}>
+                            Opening Batsman
+                        </Text>
+
+                        <View style={{ marginBottom: 12 }}>
+                            <Dropdown
+                                label='Striker'
+                                mode='outlined'
+                                value={strikerId}
+                                options={strikerOptions}
+                                onSelect={(value) => {
+                                    setStrikerId(value);
+
+                                    if (value === nonStrikerId) {
+                                        setNonStrikerId(undefined);
+                                    }
+                                }}
+                            />
+                        </View>
+
+                        <Dropdown label='Non-striker' mode='outlined' value={nonStrikerId} options={nonStrikerOptions} onSelect={setNonStrikerId} />
+                    </Card.Content>
+                </Card>
+
+                <Card style={{ backgroundColor: Colors.white, marginBottom: 8 }}>
+                    <Card.Content>
+                        <Text variant='titleMedium' style={{ marginBottom: 8 }}>
                             Opening Bowler
                         </Text>
 
-                        <AppSelect
-                            label='Bowler'
-                            value={bowlerOptions.find((option) => option.value === bowlerId)?.label ?? ""}
-                            options={bowlerOptions}
-                            onChange={setBowlerId}
-                        />
+                        <Dropdown label='Bowler' mode='outlined' value={bowlerId} options={bowlerOptions} onSelect={setBowlerId} />
                     </Card.Content>
                 </Card>
             </ScrollView>
@@ -299,7 +271,7 @@ export default function StartMatchScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#fff",
+        backgroundColor: Colors.background,
     },
 
     scroll: {
@@ -340,12 +312,12 @@ const styles = StyleSheet.create({
     },
 
     matchDate: {
-        color: Colors.textSecondary,
-        marginLeft: 12,
+        // color: Colors.textSecondary,
+        // marginLeft: 12,
     },
 
     matchInfo: {
-        color: Colors.textSecondary,
+        // color: Colors.textSecondary,
     },
 
     matchStatus: {
@@ -356,15 +328,30 @@ const styles = StyleSheet.create({
 
     footer: {
         backgroundColor: Colors.white,
-        borderTopWidth: 2,
-        borderTopColor: Colors.gray,
+        borderTopWidth: 1,
+        borderTopColor: Colors.darkGray,
         gap: 12,
-        paddingHorizontal: Spacing.defaultSpace,
-        paddingTop: 10,
-        paddingBottom: 14,
+        padding: Spacing.defaultSpace,
     },
 
     startButton: {
-        marginTop: 0,
+        borderRadius: 8,
+    },
+
+    matchCard: {
+        padding: Spacing.defaultSpace,
+    },
+
+    divider: {
+        height: 1,
+        backgroundColor: Colors.darkGray,
+        marginBottom: Spacing.defaultSpace,
+    },
+
+    venue: {
+        fontSize: 14,
+        color: "#666",
+        fontWeight: "600",
+        textAlign: "right",
     },
 });

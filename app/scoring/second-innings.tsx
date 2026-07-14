@@ -35,10 +35,6 @@ export default function SecondInningsScreen() {
     const [bowlerId, setBowlerId] = useState<string>();
 
     useEffect(() => {
-        load();
-    }, []);
-
-    function load() {
         setMatch(MatchRepository.find(matchIdNum));
 
         const firstInnings = InningsRepository.findByMatchAndNo(matchIdNum, 1);
@@ -55,7 +51,7 @@ export default function SecondInningsScreen() {
 
         setBattingPlayers(battingIds.map((id) => PlayerRepository.find(id)).filter(Boolean));
         setBowlingPlayers(bowlingIds.map((id) => PlayerRepository.find(id)).filter(Boolean));
-    }
+    }, [matchIdNum]);
 
     const battingTeamName = battingTeam === "team_a" ? match?.team_name : match?.opponent_name;
 

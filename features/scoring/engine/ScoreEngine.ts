@@ -11,6 +11,7 @@ import Overs from "../helpers/OversHelper";
 import RunRate from "../helpers/RunRateHelper";
 import { BallEvent } from "../models/BallEvent";
 import { CreateInningsRequest } from "../models/CreateInningsRequest";
+import { CurrentInningsModel } from "../models/CurrentInningsModel";
 import { ScoreboardState } from "../models/ScoreboardState";
 import { ScoreResult } from "../models/ScoreResult";
 import InningsBattingRepository from "../repositories/InningsBattingRepository";
@@ -586,27 +587,46 @@ class ScoreEngine {
             batting.sixes++;
         }
 
+        this.inningsBattingRepository.update(
+            batting
+        );
+
         if (
             event.isWicket &&
             event.dismissalType !== DismissalType.RETIRED_HURT
         ) {
 
-            batting.is_out = true;
+            const dismissedPlayerId =
+                event.dismissedPlayerId ?? current.striker_id;
 
-            batting.dismissal_type =
-                event.dismissalType ?? undefined;
+            const dismissedBatting =
+                dismissedPlayerId === current.striker_id
+                    ? batting
+                    : this.inningsBattingRepository.find(
+                        innings.id!,
+                        dismissedPlayerId
+                    );
 
-            batting.bowler_id =
-                current.bowler_id;
+            if (dismissedBatting) {
 
-            batting.fielder_id =
-                event.fielderId ?? undefined;
+                dismissedBatting.is_out = true;
+
+                dismissedBatting.dismissal_type =
+                    event.dismissalType ?? undefined;
+
+                dismissedBatting.bowler_id =
+                    current.bowler_id;
+
+                dismissedBatting.fielder_id =
+                    event.fielderId ?? undefined;
+
+                this.inningsBattingRepository.update(
+                    dismissedBatting
+                );
+
+            }
 
         }
-
-        this.inningsBattingRepository.update(
-            batting
-        );
 
         // ----------------------------------------------------
         // Update bowling statistics
@@ -1114,9 +1134,70 @@ class ScoreEngine {
             );
         }
 
+        this.addNextBatsman(
+            innings.id!,
+            current,
+            dismissedPlayerId,
+            nextBatsmanId
+        );
+
+    }
+
+    async recordWicket(
+        runs: number,
+        dismissedPlayerId: string,
+        dismissalType: DismissalType,
+        nextBatsmanId: string,
+        fielderId?: string
+    ): Promise<void> {
+
+        await this.scoreBall({
+
+            runs,
+
+            isWicket: true,
+
+            dismissalType,
+
+            dismissedPlayerId,
+
+            fielderId
+
+        });
+
+        const innings =
+            this.inningsRepository.find(this.getActiveInningsId());
+
+        if (!innings) {
+            throw new Error("Innings not found.");
+        }
+
+        const current =
+            this.currentInningsRepository.find(innings.id!);
+
+        if (!current) {
+            throw new Error("Current innings not found.");
+        }
+
+        this.addNextBatsman(
+            innings.id!,
+            current,
+            dismissedPlayerId,
+            nextBatsmanId
+        );
+
+    }
+
+    private addNextBatsman(
+        inningsId: number,
+        current: CurrentInningsModel,
+        dismissedPlayerId: string,
+        nextBatsmanId: string
+    ): void {
+
         this.inningsBattingRepository.save({
 
-            innings_id: innings.id!,
+            innings_id: inningsId,
 
             player_id: nextBatsmanId,
 

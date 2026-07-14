@@ -1,5 +1,6 @@
 import AppHeader from "@/components/AppHeader";
-import AppSelect from "@/components/AppSelect";
+import { Colors } from "@/constants/colors";
+import { Spacing } from "@/constants/spacing";
 import MatchPlayerRepository from "@/database/repositories/MatchPlayerRepository";
 import PlayerRepository from "@/database/repositories/PlayerRepository";
 import ScoreEngine from "@/features/scoring/engine/ScoreEngine";
@@ -8,6 +9,7 @@ import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ScrollView, StyleSheet } from "react-native";
 import { Button, Card, Text } from "react-native-paper";
+import { Dropdown } from "react-native-paper-dropdown";
 
 interface BowlerOption {
     label: string;
@@ -69,22 +71,23 @@ export default function Bowler() {
             <AppHeader title='Change Bowler' showBack />
 
             <ScrollView contentContainerStyle={styles.container}>
-                <Card>
+                <Card style={{ backgroundColor: Colors.white }}>
                     <Card.Content>
-                        <Text style={styles.helperText}>{isEndOfOverChange ? "Select next over bowler" : "Change bowler and continue this over"}</Text>
-
-                        <AppSelect
+                        <Text variant='titleMedium' style={{ marginBottom: 8 }}>
+                            {isEndOfOverChange ? "Select next over bowler" : "Change bowler and continue this over"}
+                        </Text>
+                        <Dropdown
                             label='Select Bowler'
-                            value={options.find((option) => option.value === selectedBowlerId)?.label ?? ""}
+                            mode='outlined'
+                            value={selectedBowlerId}
                             options={options}
-                            onChange={setSelectedBowlerId}
+                            onSelect={(value) => setSelectedBowlerId(value ?? "")}
                         />
+                        <Button mode='contained' style={{ borderRadius: 8, marginTop: 16 }} onPress={onContinue} disabled={!selectedBowlerId}>
+                            Continue
+                        </Button>
                     </Card.Content>
                 </Card>
-
-                <Button mode='contained' onPress={onContinue} disabled={!selectedBowlerId}>
-                    Continue
-                </Button>
             </ScrollView>
         </>
     );
@@ -92,12 +95,7 @@ export default function Bowler() {
 
 const styles = StyleSheet.create({
     container: {
-        padding: 16,
-        gap: 16,
-    },
-
-    helperText: {
-        marginBottom: 8,
-        opacity: 0.7,
+        padding: Spacing.defaultSpace,
+        gap: Spacing.defaultSpace,
     },
 });
