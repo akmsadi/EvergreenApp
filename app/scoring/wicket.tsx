@@ -39,12 +39,16 @@ export default function WicketScreen() {
             return;
         }
 
-        if (lastDelivery) {
+        if (pendingRuns === undefined && lastDelivery) {
             const dismissedPlayerId = lastDelivery.dismissed_player_id ?? lastDelivery.batsman_id;
             const fielder = lastDelivery.fielder_id ? PlayerRepository.find(lastDelivery.fielder_id) : null;
             setSelectedDismissedPlayerId(String(dismissedPlayerId));
             setSelectedDismissalType(lastDelivery.dismissal_type ?? DismissalType.BOWLED);
             setSelectedFielderId(fielder ? String(fielder.id) : "");
+        } else {
+            setSelectedDismissedPlayerId(String(scoreboard.strikerId));
+            setSelectedDismissalType(DismissalType.BOWLED);
+            setSelectedFielderId("");
         }
 
         const striker = PlayerRepository.find(scoreboard.strikerId);
@@ -94,7 +98,7 @@ export default function WicketScreen() {
         }
 
         setPlayers(list);
-    }, []);
+    }, [pendingRuns]);
 
     useEffect(() => {
         void loadScreen();
@@ -121,8 +125,10 @@ export default function WicketScreen() {
         setSelectedFielderId(value);
     }
 
+    const isAllOut = players.length === 0;
+
     async function onContinue() {
-        if (!selectedPlayerId || !selectedDismissedPlayerId || !selectedDismissalType) {
+        if ((!isAllOut && !selectedPlayerId) || !selectedDismissedPlayerId || !selectedDismissalType) {
             return;
         }
 
@@ -131,19 +137,19 @@ export default function WicketScreen() {
                 Number(pendingRuns),
                 selectedDismissedPlayerId,
                 selectedDismissalType as DismissalType,
-                selectedPlayerId,
+                selectedPlayerId || undefined,
                 selectedFielderId || undefined,
             );
         } else {
             await ScoreEngine.resolveWicket(
-                selectedPlayerId,
+                selectedPlayerId || undefined,
                 selectedDismissedPlayerId,
                 selectedDismissalType as DismissalType,
                 selectedFielderId || undefined,
             );
         }
 
-        if (ScoreEngine.isEndOfOver()) {
+        if (!isAllOut && ScoreEngine.isEndOfOver()) {
             router.replace("/scoring/bowler");
             return;
         }
@@ -221,23 +227,27 @@ export default function WicketScreen() {
                             Incoming Batsman
                         </Text>
 
-                        <Dropdown
-                            label='Select Batsman'
-                            mode='outlined'
-                            value={selectedPlayerId}
-                            options={players.map((player) => ({
-                                label: player.name,
-                                value: String(player.id),
-                            }))}
-                            onSelect={(value) => setSelectedPlayerId(value ?? "")}
-                        />
+                        {isAllOut ? (
+                            <Text style={styles.metaText}>Team all out — no batsman remaining.</Text>
+                        ) : (
+                            <Dropdown
+                                label='Select Batsman'
+                                mode='outlined'
+                                value={selectedPlayerId}
+                                options={players.map((player) => ({
+                                    label: player.name,
+                                    value: String(player.id),
+                                }))}
+                                onSelect={(value) => setSelectedPlayerId(value ?? "")}
+                            />
+                        )}
                     </Card.Content>
                 </Card>
 
                 <Button
                     mode='contained'
                     onPress={onContinue}
-                    disabled={!selectedPlayerId || !selectedDismissedPlayerId || !selectedDismissalType}
+                    disabled={(!isAllOut && !selectedPlayerId) || !selectedDismissedPlayerId || !selectedDismissalType}
                     style={styles.button}
                 >
                     Continue

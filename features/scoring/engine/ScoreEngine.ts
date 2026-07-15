@@ -7,7 +7,7 @@ import MatchStateBuilder from "./MatchStateBuilder";
 import MatchPlayerRepository from "@/database/repositories/MatchPlayerRepository";
 import MatchRepository from "@/database/repositories/MatchRepository";
 import PlayerRepository from "@/database/repositories/PlayerRepository";
-import Overs from "../helpers/OversHelper";
+import { format } from "../helpers/OversHelper";
 import RunRate from "../helpers/RunRateHelper";
 import { BallEvent } from "../models/BallEvent";
 import { CreateInningsRequest } from "../models/CreateInningsRequest";
@@ -939,7 +939,7 @@ class ScoreEngine {
 
             wickets: innings.wickets,
 
-            overs: Overs.format(
+            overs: format(
                 innings.legal_balls
             ),
 
@@ -1022,7 +1022,7 @@ class ScoreEngine {
     }
 
     async resolveWicket(
-        nextBatsmanId: string,
+        nextBatsmanId: string | undefined,
         dismissedPlayerId: string,
         dismissalType: DismissalType,
         fielderId?: string
@@ -1134,12 +1134,14 @@ class ScoreEngine {
             );
         }
 
-        this.addNextBatsman(
-            innings.id!,
-            current,
-            dismissedPlayerId,
-            nextBatsmanId
-        );
+        if (nextBatsmanId) {
+            this.addNextBatsman(
+                innings.id!,
+                current,
+                dismissedPlayerId,
+                nextBatsmanId
+            );
+        }
 
     }
 
@@ -1147,7 +1149,7 @@ class ScoreEngine {
         runs: number,
         dismissedPlayerId: string,
         dismissalType: DismissalType,
-        nextBatsmanId: string,
+        nextBatsmanId?: string,
         fielderId?: string
     ): Promise<void> {
 
@@ -1179,12 +1181,14 @@ class ScoreEngine {
             throw new Error("Current innings not found.");
         }
 
-        this.addNextBatsman(
-            innings.id!,
-            current,
-            dismissedPlayerId,
-            nextBatsmanId
-        );
+        if (nextBatsmanId) {
+            this.addNextBatsman(
+                innings.id!,
+                current,
+                dismissedPlayerId,
+                nextBatsmanId
+            );
+        }
 
     }
 

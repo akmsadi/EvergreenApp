@@ -102,13 +102,13 @@ export default function MatchPlayersScreen() {
 
     const handleSave = () => {
         if (!id) {
-            router.back();
+            router.replace("/(tabs)/dashboard");
             return;
         }
 
         const matchId = Number(id);
         MatchPlayerRepository.saveAssignments(matchId, teamAIds, teamBIds, teamACaptain ?? null, teamBCaptain ?? null);
-        router.back();
+        router.replace("/(tabs)/dashboard");
     };
 
     return (

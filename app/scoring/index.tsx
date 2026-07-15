@@ -25,7 +25,7 @@ export default function ScoringScreen() {
     const [strikerStats, setStrikerStats] = useState<InningsBattingModel | null>(null);
     const [nonStrikerStats, setNonStrikerStats] = useState<InningsBattingModel | null>(null);
     const [bowlerStats, setBowlerStats] = useState<InningsBowlingModel | null>(null);
-    const [lastSixBalls, setLastSixBalls] = useState<string[]>([]);
+    const [thisOverBalls, setThisOverBalls] = useState<string[]>([]);
     const [noBallRunsInput, setNoBallRunsInput] = useState("");
     const [wicketRunsInput, setWicketRunsInput] = useState("0");
     const [autoSwapDisabled, setAutoSwapDisabled] = useState(!ScoreEngine.isAutoSwapEnabled());
@@ -44,7 +44,7 @@ export default function ScoringScreen() {
         setStrikerStats(InningsBattingRepository.find(state.inningsId, state.strikerId));
         setNonStrikerStats(InningsBattingRepository.find(state.inningsId, state.nonStrikerId));
         setBowlerStats(InningsBowlingRepository.find(state.inningsId, state.bowlerId));
-        setLastSixBalls(DeliveryRepository.findLastBallCommentaries(state.inningsId, 6));
+        setThisOverBalls(DeliveryRepository.findCurrentOverCommentaries(state.inningsId));
     }
 
     async function score(runs: number) {
@@ -224,9 +224,9 @@ export default function ScoringScreen() {
                     </View>
 
                     <View style={styles.lastSixRow}>
-                        <Text style={styles.lastSixLabel}>Last 6 balls:</Text>
+                        <Text style={styles.lastSixLabel}>This Over:</Text>
                         <View style={styles.lastSixBallsWrap}>
-                            {(lastSixBalls.length > 0 ? lastSixBalls : ["-"]).map((ball, index) => (
+                            {(thisOverBalls.length > 0 ? thisOverBalls : ["-"]).map((ball, index) => (
                                 <View key={`${ball}-${index}`} style={styles.ballChip}>
                                     <Text style={styles.ballChipText}>{ball}</Text>
                                 </View>

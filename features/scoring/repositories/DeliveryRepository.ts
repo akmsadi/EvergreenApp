@@ -8,6 +8,15 @@ class DeliveryRepository {
     ): string {
 
         if (delivery.is_wicket) {
+
+            if (delivery.extra_type === "NB") {
+                return `NB${delivery.runs_off_bat > 0 ? `+${delivery.runs_off_bat}` : ""}+Wk`;
+            }
+
+            if (delivery.extra_type === "WD") {
+                return `WD${delivery.extra_runs > 1 ? delivery.extra_runs : ""}+Wk`;
+            }
+
             return "Wk";
         }
 
@@ -209,9 +218,8 @@ class DeliveryRepository {
         return this.formatCommentary(row);
     }
 
-    findLastBallCommentaries(
-        inningsId: number,
-        limit = 6
+    findCurrentOverCommentaries(
+        inningsId: number
     ): string[] {
 
         const rows = db.getAllSync(
@@ -219,15 +227,17 @@ class DeliveryRepository {
         SELECT *
         FROM deliveries
         WHERE innings_id = ?
-        ORDER BY id DESC
-        LIMIT ?
+          AND over_no = (
+              SELECT MAX(over_no)
+              FROM deliveries
+              WHERE innings_id = ?
+          )
+        ORDER BY id
         `,
-            [inningsId, limit]
+            [inningsId, inningsId]
         ) as DeliveryModel[];
 
-        return rows
-            .reverse()
-            .map((row) => this.formatCommentary(row));
+        return rows.map((row) => this.formatCommentary(row));
 
     }
 
