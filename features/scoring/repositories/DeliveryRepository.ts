@@ -17,7 +17,7 @@ class DeliveryRepository {
                 return `WD${delivery.extra_runs > 1 ? delivery.extra_runs : ""}+Wk`;
             }
 
-            return "Wk";
+            return delivery.runs_off_bat > 0 ? `${delivery.runs_off_bat}+Wk` : "Wk";
         }
 
         if (delivery.extra_type === "WD") {

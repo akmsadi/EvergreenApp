@@ -24,7 +24,7 @@ class PlayerRepository {
                 created_at,
                 updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
-            player.id,
+            id,
             player.server_id,
             player.name,
             player.organization,

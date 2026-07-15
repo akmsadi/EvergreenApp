@@ -11,3 +11,15 @@ export enum DismissalType {
     RETIRED_HURT = "RETIRED_HURT",
     RETIRED_OUT = "RETIRED_OUT"
 }
+
+const BOWLER_CREDITED_DISMISSALS = new Set<string>([
+    DismissalType.BOWLED,
+    DismissalType.CAUGHT,
+    DismissalType.LBW,
+    DismissalType.STUMPED,
+    DismissalType.HIT_WICKET,
+]);
+
+export function isBowlerWicket(dismissalType: string | undefined | null): boolean {
+    return !!dismissalType && BOWLER_CREDITED_DISMISSALS.has(dismissalType);
+}

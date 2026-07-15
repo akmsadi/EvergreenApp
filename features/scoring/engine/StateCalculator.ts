@@ -10,7 +10,7 @@ import InningsBattingRepository from "../repositories/InningsBattingRepository";
 import InningsBowlingRepository from "../repositories/InningsBowlingRepository";
 import InningsRepository from "../repositories/InningsRepository";
 import InningsStartRepository from "../repositories/InningsStartRepository";
-import { DismissalType } from "../types/DismissalType";
+import { DismissalType, isBowlerWicket } from "../types/DismissalType";
 import { ExtraType } from "../types/ExtraType";
 import MatchStateBuilder from "./MatchStateBuilder";
 
@@ -63,6 +63,8 @@ class StateCalculator {
             inningsStart?.striker_id ?? currentState.striker_id;
         let nonStrikerId =
             inningsStart?.non_striker_id ?? currentState.non_striker_id;
+        let bowlerId =
+            inningsStart?.bowler_id ?? currentState.bowler_id;
 
         // Get all deliveries for this innings
         const deliveries = this.deliveryRepository.findAll(inningsId);
@@ -107,6 +109,7 @@ class StateCalculator {
             // truth before calculating who faces the next ball.
             strikerId = delivery.batsman_id;
             nonStrikerId = delivery.non_striker_id;
+            bowlerId = delivery.bowler_id;
 
             runs += delivery.total_runs;
 
@@ -274,7 +277,7 @@ class StateCalculator {
 
             if (
                 delivery.is_wicket &&
-                delivery.dismissal_type !== DismissalType.RETIRED_HURT
+                isBowlerWicket(delivery.dismissal_type)
             ) {
                 bowling.wickets++;
             }
@@ -382,6 +385,7 @@ class StateCalculator {
 
         currentState.striker_id = strikerId;
         currentState.non_striker_id = nonStrikerId;
+        currentState.bowler_id = bowlerId;
 
         this.currentInningsRepository.update(
             currentState

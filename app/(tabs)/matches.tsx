@@ -3,14 +3,30 @@ import { Colors } from "@/constants/colors";
 import { MatchModel } from "@/database/models/MatchModel";
 import MatchPlayerRepository from "@/database/repositories/MatchPlayerRepository";
 import MatchRepository from "@/database/repositories/MatchRepository";
+import ScoreEngine from "@/features/scoring/engine/ScoreEngine";
 import { formatDate } from "@/utils/Common";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
-import { FlatList, StyleSheet, Text, View } from "react-native";
+import { Alert, FlatList, StyleSheet, Text, View } from "react-native";
 import { Button } from "react-native-paper";
 
 function MatchCard({ match, onDelete, onCopy }: { match: MatchModel; onDelete: (id: number) => void; onCopy: (id: number) => void }) {
     const router = useRouter();
+
+    const handleStartMatch = async (matchId: number) => {
+        try {
+            const resumed = await ScoreEngine.resumeMatch(matchId);
+
+            if (resumed) {
+                router.push("/scoring");
+                return;
+            }
+
+            router.push(`/matches/${matchId}/start`);
+        } catch (error) {
+            Alert.alert("Unable to start", error instanceof Error ? error.message : "Unknown error");
+        }
+    };
     return (
         <View style={styles.item}>
             <View style={[styles.itemHeader]}>
@@ -44,11 +60,18 @@ function MatchCard({ match, onDelete, onCopy }: { match: MatchModel; onDelete: (
                     </>
                 )}
                 {match.match_status === "scheduled" && (
-                    <View style={styles.actionButton}>
-                        <Button mode='contained' icon='delete' compact onPress={() => onDelete(match.id)}>
-                            Delete
-                        </Button>
-                    </View>
+                    <>
+                        <View style={styles.actionButton}>
+                            <Button mode='outlined' icon='play' style={{ borderRadius: 8 }} compact onPress={() => handleStartMatch(match.id)}>
+                                Start
+                            </Button>
+                        </View>
+                        <View style={styles.actionButton}>
+                            <Button mode='contained' icon='delete' style={{ borderRadius: 8 }} compact onPress={() => onDelete(match.id)}>
+                                Delete
+                            </Button>
+                        </View>
+                    </>
                 )}
             </View>
         </View>

@@ -17,7 +17,7 @@ import { ScoreResult } from "../models/ScoreResult";
 import InningsBattingRepository from "../repositories/InningsBattingRepository";
 import InningsBowlingRepository from "../repositories/InningsBowlingRepository";
 import InningsStartRepository from "../repositories/InningsStartRepository";
-import { DismissalType } from "../types/DismissalType";
+import { DismissalType, isBowlerWicket } from "../types/DismissalType";
 import { ExtraType } from "../types/ExtraType";
 import StateCalculator from "./StateCalculator";
 
@@ -682,7 +682,7 @@ class ScoreEngine {
 
         if (
             event.isWicket &&
-            event.dismissalType !== DismissalType.RETIRED_HURT
+            isBowlerWicket(event.dismissalType)
         ) {
             bowling.wickets++;
         }
@@ -1242,8 +1242,14 @@ class ScoreEngine {
             return false;
         }
 
-        return innings.legal_balls > 0 &&
-            innings.legal_balls % 6 === 0;
+        if (innings.legal_balls === 0 || innings.legal_balls % 6 !== 0) {
+            return false;
+        }
+
+        const lastDelivery =
+            this.deliveryRepository.findLast(innings.id!);
+
+        return !!lastDelivery && lastDelivery.legal_ball;
 
     }
 
