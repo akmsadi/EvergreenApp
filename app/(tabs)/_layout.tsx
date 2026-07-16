@@ -4,8 +4,10 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { router, Tabs } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabLayout() {
+    const insets = useSafeAreaInsets();
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -36,7 +38,18 @@ export default function TabLayout() {
     }
 
     return (
-        <Tabs screenOptions={{ headerShown: false, tabBarStyle: { borderTopColor: Colors.darkGray, borderTopWidth: 1, paddingTop: 12 } }}>
+        <Tabs
+            screenOptions={{
+                headerShown: false,
+                tabBarStyle: {
+                    borderTopColor: Colors.darkGray,
+                    borderTopWidth: 1,
+                    paddingTop: 12,
+                    height: 60 + insets.bottom,
+                    paddingBottom: insets.bottom,
+                },
+            }}
+        >
             <Tabs.Screen
                 name='dashboard'
                 options={{

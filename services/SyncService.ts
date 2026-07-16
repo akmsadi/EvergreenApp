@@ -78,7 +78,7 @@ class SyncService {
         PlayerRepository.clearServerIds();
 
         // Re-map downloaded players
-        PlayerRepository.saveMany(
+        PlayerRepository.syncPlayers(
             players.map(player => ({
                 ...player,
                 server_id: Number(player.server_id),

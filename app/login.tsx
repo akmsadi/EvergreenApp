@@ -1,15 +1,19 @@
+import { Colors } from "@/constants/colors";
+import { Spacing } from "@/constants/spacing";
 import { UserModel } from "@/database/models/UserModel";
 import UserRepository from "@/database/repositories/UserRepository";
 import ApiService from "@/services/ApiService";
 import SecureStorage from "@/services/SecureStorage";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, View } from "react-native";
+import { Alert, ImageBackground, StyleSheet, View } from "react-native";
 import { ActivityIndicator, Button, Card, Text, TextInput } from "react-native-paper";
 
 export default function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [usernameError, setUsernameError] = useState("");
+    const [passwordError, setPasswordError] = useState("");
     const [checkingLogin, setCheckingLogin] = useState(true);
 
     useEffect(() => {
@@ -32,14 +36,34 @@ export default function Login() {
     };
 
     const handleLogin = async () => {
+        const trimmedUsername = username.trim();
+
+        // Clear previous errors
+        setUsernameError("");
+        setPasswordError("");
+
+        let hasError = false;
+
+        if (!trimmedUsername) {
+            setUsernameError("Username is required.");
+            hasError = true;
+        }
+
+        if (!password) {
+            setPasswordError("Password is required.");
+            hasError = true;
+        }
+
+        if (hasError) return;
+
         try {
-            const user = await ApiService.login<UserModel>(username, password);
+            const user = await ApiService.login<UserModel>(trimmedUsername, password);
+
             await SecureStorage.setToken(user.token);
             UserRepository.save(user);
+
             router.replace("/(tabs)/dashboard");
         } catch (error) {
-            console.error("Login error:", error);
-
             Alert.alert("Login Failed", error instanceof Error ? error.message : "An error occurred while logging in.");
         }
     };
@@ -59,23 +83,78 @@ export default function Login() {
     }
 
     return (
-        <View
-            style={{
-                flex: 1,
-                justifyContent: "center",
-                padding: 20,
-            }}
-        >
-            <Card>
-                <Card.Content>
-                    <Text variant='headlineMedium'>Evergreen Scorer</Text>
-                    <TextInput label='Username' value={username} onChangeText={setUsername} mode='outlined' style={{ marginTop: 20 }} />
-                    <TextInput label='Password' value={password} onChangeText={setPassword} mode='outlined' secureTextEntry style={{ marginTop: 10 }} />
-                    <Button mode='contained' onPress={handleLogin} style={{ marginTop: 20 }}>
-                        Login
-                    </Button>
-                </Card.Content>
-            </Card>
-        </View>
+        <ImageBackground source={require("@/assets/images/icon.png")} style={styles.background} imageStyle={styles.backgroundImage} resizeMode='cover'>
+            <View
+                style={{
+                    flex: 1,
+                    justifyContent: "center",
+                    padding: Spacing.defaultSpace,
+                }}
+            >
+                <Card style={styles.card}>
+                    <Card.Content>
+                        <Text variant='headlineMedium' style={{ textAlign: "center", marginBottom: Spacing.defaultSpace }}>
+                            Login
+                        </Text>
+                        <TextInput
+                            label='Username'
+                            style={{ marginBottom: Spacing.defaultSpace }}
+                            value={username}
+                            onChangeText={(text) => {
+                                setUsername(text);
+                                if (usernameError) setUsernameError("");
+                            }}
+                            mode='outlined'
+                            error={!!usernameError}
+                        />
+
+                        <TextInput
+                            label='Password'
+                            value={password}
+                            onChangeText={(text) => {
+                                setPassword(text);
+                                if (passwordError) setPasswordError("");
+                            }}
+                            mode='outlined'
+                            secureTextEntry
+                            error={!!passwordError}
+                        />
+
+                        <Button mode='contained' onPress={handleLogin} style={styles.submitButton} labelStyle={styles.submitButtonLabel}>
+                            Submit
+                        </Button>
+                    </Card.Content>
+                </Card>
+            </View>
+        </ImageBackground>
     );
 }
+const styles = StyleSheet.create({
+    background: {
+        flex: 1,
+        width: "100%",
+    },
+    backgroundImage: {
+        opacity: 0.1,
+        width: "100%",
+    },
+    container: {
+        flex: 1,
+        justifyContent: "center",
+        padding: Spacing.defaultSpace,
+        backgroundColor: "transparent",
+    },
+    card: {
+        backgroundColor: Colors.white,
+        borderRadius: 8,
+    },
+    submitButton: {
+        marginTop: Spacing.defaultSpace,
+        borderRadius: 8,
+        height: 56,
+        justifyContent: "center",
+    },
+    submitButtonLabel: {
+        fontSize: 16,
+    },
+});

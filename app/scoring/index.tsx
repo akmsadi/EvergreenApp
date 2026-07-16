@@ -1,26 +1,25 @@
 import AppHeader from "@/components/AppHeader";
+import { Colors } from "@/constants/colors";
+import { Spacing } from "@/constants/spacing";
 import ScoreEngine from "@/features/scoring/engine/ScoreEngine";
 import { InningsBattingModel } from "@/features/scoring/models/InningsBattingModel";
 import { InningsBowlingModel } from "@/features/scoring/models/InningsBowlingModel";
+import { ScoreboardState } from "@/features/scoring/models/ScoreboardState";
 import DeliveryRepository from "@/features/scoring/repositories/DeliveryRepository";
 import InningsBattingRepository from "@/features/scoring/repositories/InningsBattingRepository";
 import InningsBowlingRepository from "@/features/scoring/repositories/InningsBowlingRepository";
 import { DismissalType } from "@/features/scoring/types/DismissalType";
-
+import { ExtraType } from "@/features/scoring/types/ExtraType";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import { Alert, ScrollView, StyleSheet, View } from "react-native";
 import { Button, Checkbox, Divider, Text, TextInput } from "react-native-paper";
-
-import { Colors } from "@/constants/colors";
-import { Spacing } from "@/constants/spacing";
-import { ScoreboardState } from "@/features/scoring/models/ScoreboardState";
-import { ExtraType } from "@/features/scoring/types/ExtraType";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function ScoringScreen() {
     const router = useRouter();
-
+    const insets = useSafeAreaInsets();
     const [scoreboard, setScoreboard] = useState<ScoreboardState | null>(null);
     const [strikerStats, setStrikerStats] = useState<InningsBattingModel | null>(null);
     const [nonStrikerStats, setNonStrikerStats] = useState<InningsBattingModel | null>(null);
@@ -305,7 +304,7 @@ export default function ScoringScreen() {
                 </View>
             </ScrollView>
 
-            <View style={styles.footer}>
+            <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, Spacing.defaultSpace) }]}>
                 <Button mode='contained' onPress={() => router.push("/scoring/bowler")} style={styles.footerButton}>
                     Change Bowler
                 </Button>

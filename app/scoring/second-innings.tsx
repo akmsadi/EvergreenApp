@@ -1,23 +1,22 @@
 import AppHeader from "@/components/AppHeader";
-import AppSelect from "@/components/AppSelect";
 import { Colors } from "@/constants/colors";
 import { Spacing } from "@/constants/spacing";
 
 import MatchPlayerRepository from "@/database/repositories/MatchPlayerRepository";
 import MatchRepository from "@/database/repositories/MatchRepository";
 import PlayerRepository from "@/database/repositories/PlayerRepository";
-
 import ScoreEngine from "@/features/scoring/engine/ScoreEngine";
 import InningsRepository from "@/features/scoring/repositories/InningsRepository";
-
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Button, Card, Text } from "react-native-paper";
+import { Dropdown } from "react-native-paper-dropdown";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function SecondInningsScreen() {
     const router = useRouter();
-
+    const insets = useSafeAreaInsets();
     const { matchId } = useLocalSearchParams();
 
     const matchIdNum = Number(matchId);
@@ -33,6 +32,9 @@ export default function SecondInningsScreen() {
     const [strikerId, setStrikerId] = useState<string>();
     const [nonStrikerId, setNonStrikerId] = useState<string>();
     const [bowlerId, setBowlerId] = useState<string>();
+    const [strikerIdError, setStrikerIdError] = useState("");
+    const [nonStrikerIdError, setNonStrikerIdError] = useState("");
+    const [bowlerIdError, setBowlerIdError] = useState("");
 
     useEffect(() => {
         setMatch(MatchRepository.find(matchIdNum));
@@ -85,9 +87,13 @@ export default function SecondInningsScreen() {
     );
 
     async function start() {
+        setStrikerIdError("");
+        setNonStrikerIdError("");
+        setBowlerIdError("");
         if (!strikerId || !nonStrikerId || !bowlerId) {
-            alert("Select opening players.");
-
+            if (!strikerId) setStrikerIdError("Select striker");
+            if (!nonStrikerId) setNonStrikerIdError("Select non-striker");
+            if (!bowlerId) setBowlerIdError("Select bowler");
             return;
         }
 
@@ -102,16 +108,12 @@ export default function SecondInningsScreen() {
 
     return (
         <View style={styles.container}>
-            <AppHeader title='Start 2nd Innings' subtitle={`Target: ${target}`} />
+            <AppHeader title='Start 2nd Innings' />
 
             <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-                <Card style={{ backgroundColor: Colors.white, marginBottom: 8 }}>
-                    <Card.Content>
-                        <Text variant='titleMedium' style={styles.cardTitle}>
-                            {battingTeamName ?? "Batting team"} need {target} to win
-                        </Text>
-                    </Card.Content>
-                </Card>
+                <Text variant='titleLarge' style={[styles.cardTitle, { textAlign: "center" }]}>
+                    {battingTeamName ?? "Batting team"} need {target} to win
+                </Text>
 
                 <Card style={{ backgroundColor: Colors.white, marginBottom: 8 }}>
                     <Card.Content>
@@ -119,24 +121,27 @@ export default function SecondInningsScreen() {
                             Opening Batsman
                         </Text>
 
-                        <AppSelect
+                        <Dropdown
+                            mode='outlined'
                             label='Striker'
-                            value={strikerOptions.find((option) => option.value === strikerId)?.label ?? ""}
+                            value={strikerId}
                             options={strikerOptions}
-                            onChange={(value) => {
+                            onSelect={(value) => {
                                 setStrikerId(value);
-
                                 if (value === nonStrikerId) {
                                     setNonStrikerId(undefined);
                                 }
                             }}
+                            error={!!strikerIdError}
                         />
 
-                        <AppSelect
+                        <Dropdown
+                            mode='outlined'
                             label='Non-striker'
-                            value={nonStrikerOptions.find((option) => option.value === nonStrikerId)?.label ?? ""}
+                            value={nonStrikerId}
                             options={nonStrikerOptions}
-                            onChange={setNonStrikerId}
+                            onSelect={setNonStrikerId}
+                            error={!!nonStrikerIdError}
                         />
                     </Card.Content>
                 </Card>
@@ -146,18 +151,12 @@ export default function SecondInningsScreen() {
                         <Text variant='titleMedium' style={styles.cardTitle}>
                             Opening Bowler
                         </Text>
-
-                        <AppSelect
-                            label='Bowler'
-                            value={bowlerOptions.find((option) => option.value === bowlerId)?.label ?? ""}
-                            options={bowlerOptions}
-                            onChange={setBowlerId}
-                        />
+                        <Dropdown mode='outlined' label='Bowler' value={bowlerId} options={bowlerOptions} onSelect={setBowlerId} error={!!bowlerIdError} />
                     </Card.Content>
                 </Card>
             </ScrollView>
 
-            <View style={styles.footer}>
+            <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, Spacing.defaultSpace) }]}>
                 <Button mode='contained' onPress={start} style={styles.startButton}>
                     Start 2nd Innings
                 </Button>
@@ -169,7 +168,7 @@ export default function SecondInningsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#fff",
+        backgroundColor: Colors.background,
     },
 
     scroll: {
@@ -198,6 +197,6 @@ const styles = StyleSheet.create({
     },
 
     startButton: {
-        marginTop: 0,
+        borderRadius: 8,
     },
 });

@@ -10,6 +10,7 @@ import { MatchModel } from "@/database/models/MatchModel";
 import VenueRepository from "@/database/repositories/VenueRepository";
 import SyncService from "@/services/SyncService";
 import { formatDatabaseDate } from "@/utils/Common";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type MatchEditorProps = {
     initialMatch?: MatchModel | null;
@@ -18,6 +19,7 @@ type MatchEditorProps = {
 };
 
 export default function MatchEditor({ initialMatch, onSave, onAddPlayers }: MatchEditorProps) {
+    const insets = useSafeAreaInsets();
     const [matchType, setMatchType] = useState("t20");
     const [overs, setOvers] = useState("20");
     const [teamName, setTeamName] = useState("");
@@ -26,6 +28,11 @@ export default function MatchEditor({ initialMatch, onSave, onAddPlayers }: Matc
     const [scheduledAt, setScheduledAt] = useState(new Date());
     const [venueId, setVenueId] = useState<number>();
     const [venueList, setVenueList] = useState<{ label: string; value: string }[]>([]);
+
+    const [oversError, setOversError] = useState("");
+    const [teamNameError, setTeamNameError] = useState("");
+    const [opponentNameError, setOpponentNameError] = useState("");
+    const [venueError, setVenueError] = useState("");
 
     useEffect(() => {
         loadVenues();
@@ -65,21 +72,59 @@ export default function MatchEditor({ initialMatch, onSave, onAddPlayers }: Matc
     };
 
     const handleSave = () => {
+        setOversError("");
+        setTeamNameError("");
+        setOpponentNameError("");
+        setVenueError("");
+
+        let hasError = false;
+
+        const trimmedTeamName = teamName.trim();
+        const trimmedOpponentName = opponentName.trim();
+        const oversNumber = Number(overs);
+
+        if (!trimmedTeamName) {
+            setTeamNameError("Team name is required.");
+            hasError = true;
+        }
+
+        if (!trimmedOpponentName) {
+            setOpponentNameError("Opponent name is required.");
+            hasError = true;
+        }
+
+        if (!overs.trim()) {
+            setOversError("Overs is required.");
+            hasError = true;
+        } else if (isNaN(oversNumber) || oversNumber <= 0) {
+            setOversError("Enter a valid number of overs.");
+            hasError = true;
+        }
+
+        if (venueId == null) {
+            setVenueError("Please select a venue.");
+            hasError = true;
+        }
+
+        if (hasError) {
+            return;
+        }
+
         const now = new Date().toISOString();
 
         const match: MatchModel = {
             id: initialMatch?.id ?? Date.now(),
 
             match_type: matchType,
-            format_overs: Number(overs),
+            format_overs: oversNumber,
 
             venue: selectedVenue?.name ?? null,
             venue_id: venueId ?? null,
 
             scheduled_at: formatDatabaseDate(scheduledAt),
 
-            team_name: teamName.trim(),
-            opponent_name: opponentName.trim(),
+            team_name: trimmedTeamName,
+            opponent_name: trimmedOpponentName,
 
             toss_winner: initialMatch?.toss_winner ?? null,
             toss_decision: initialMatch?.toss_decision ?? null,
@@ -89,14 +134,13 @@ export default function MatchEditor({ initialMatch, onSave, onAddPlayers }: Matc
             result_type: initialMatch?.result_type ?? null,
             result_summary: initialMatch?.result_summary ?? null,
 
-            notes: notes || null,
+            notes: notes.trim() || null,
 
             created_at: initialMatch?.created_at ?? now,
             updated_at: now,
             deleted_at: initialMatch?.deleted_at ?? null,
 
             from_admin: initialMatch?.from_admin ?? 0,
-
             synced_at: initialMatch?.synced_at ?? null,
 
             dirty: 1,
@@ -113,8 +157,7 @@ export default function MatchEditor({ initialMatch, onSave, onAddPlayers }: Matc
                     onValueChange={setMatchType}
                     buttons={[
                         { value: "t20", label: "T20", style: { borderRadius: 8 } },
-                        { value: "odi", label: "ODI" },
-                        { value: "test", label: "Test", style: { borderRadius: 8 } },
+                        { value: "odi", label: "Custom", style: { borderRadius: 8 } },
                     ]}
                     theme={{
                         colors: {
@@ -124,11 +167,39 @@ export default function MatchEditor({ initialMatch, onSave, onAddPlayers }: Matc
                     }}
                 />
 
-                <TextInput label='Overs' mode='outlined' keyboardType='numeric' value={overs} onChangeText={setOvers} />
+                <TextInput
+                    label='Overs'
+                    mode='outlined'
+                    keyboardType='numeric'
+                    value={overs}
+                    onChangeText={(text) => {
+                        setOvers(text);
+                        if (oversError) setOversError("");
+                    }}
+                    error={!!oversError}
+                />
 
-                <TextInput label='Team Name' mode='outlined' value={teamName} onChangeText={setTeamName} />
+                <TextInput
+                    label='Team Name'
+                    mode='outlined'
+                    value={teamName}
+                    onChangeText={(text) => {
+                        setTeamName(text);
+                        if (teamNameError) setTeamNameError("");
+                    }}
+                    error={!!teamNameError}
+                />
 
-                <TextInput label='Opponent Name' mode='outlined' value={opponentName} onChangeText={setOpponentName} />
+                <TextInput
+                    label='Opponent Name'
+                    mode='outlined'
+                    value={opponentName}
+                    onChangeText={(text) => {
+                        setOpponentName(text);
+                        if (opponentNameError) setOpponentNameError("");
+                    }}
+                    error={!!opponentNameError}
+                />
 
                 <View style={styles.venueRow}>
                     <View style={styles.venueDropdown}>
@@ -136,8 +207,15 @@ export default function MatchEditor({ initialMatch, onSave, onAddPlayers }: Matc
                             label='Venue'
                             mode='outlined'
                             value={venueId !== undefined ? String(venueId) : undefined}
-                            onSelect={(value) => setVenueId(value ? Number(value) : undefined)}
+                            onSelect={(value) => {
+                                setVenueId(value ? Number(value) : undefined);
+
+                                if (venueError) {
+                                    setVenueError("");
+                                }
+                            }}
                             options={venueList}
+                            error={!!venueError}
                         />
                     </View>
                 </View>
@@ -171,7 +249,14 @@ export default function MatchEditor({ initialMatch, onSave, onAddPlayers }: Matc
                     </Button>
                 </View>
             </ScrollView>
-            <View style={styles.bottomButtons}>
+            <View
+                style={[
+                    styles.bottomButtons,
+                    {
+                        paddingBottom: Math.max(insets.bottom, Spacing.defaultSpace),
+                    },
+                ]}
+            >
                 {initialMatch && onAddPlayers && (
                     <View style={styles.buttonWrapper}>
                         <Button

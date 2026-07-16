@@ -1,3 +1,4 @@
+import AppToast from "@/components/AppToast";
 import { migrateDatabase } from "@/database/migrations";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -15,6 +16,7 @@ export default function RootLayout() {
     useEffect(() => {
         async function prepareApp() {
             try {
+                // resetDatabase();
                 migrateDatabase();
                 await new Promise((resolve) => setTimeout(resolve, 2000));
             } catch (error) {
@@ -31,6 +33,7 @@ export default function RootLayout() {
         <SafeAreaProvider>
             <PaperProvider theme={theme}>
                 <Stack screenOptions={{ headerShown: false }} />
+                <AppToast />
             </PaperProvider>
         </SafeAreaProvider>
     );

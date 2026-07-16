@@ -6,8 +6,6 @@ import { PlayerModel } from "../models/PlayerModel";
 class PlayerRepository {
 
     insert(player: PlayerModel): string {
-        const id = generateId();
-
         db.runSync(
             `INSERT INTO players (
                 id,
@@ -24,7 +22,7 @@ class PlayerRepository {
                 created_at,
                 updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
-            id,
+            player.id,
             player.server_id,
             player.name,
             player.organization,
@@ -39,8 +37,12 @@ class PlayerRepository {
             player.updated_at,
         ]
         );
+        return player.id;
+    }
 
-        return id;
+    insertAppPlayer(player: PlayerModel): string {
+        player.id = generateId();
+        return this.insert(player);
     }
 
     update(player: PlayerModel) {
@@ -76,7 +78,7 @@ class PlayerRepository {
         );
     }
 
-    saveMany(players: PlayerModel[]) {
+    syncPlayers(players: PlayerModel[]) {
         db.withTransactionSync(() => {
             players.forEach((player) => {
                 const existing = this.find(player.id);

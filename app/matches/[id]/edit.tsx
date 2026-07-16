@@ -1,10 +1,9 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
-import { Alert, StyleSheet, View } from "react-native";
+import { Alert } from "react-native";
 
 import AppHeader from "@/components/AppHeader";
 import MatchEditor from "@/components/MatchEditor";
-import { Colors } from "@/constants/colors";
 import { MatchModel } from "@/database/models/MatchModel";
 import MatchRepository from "@/database/repositories/MatchRepository";
 
@@ -34,16 +33,9 @@ export default function EditMatch() {
     };
 
     return (
-        <View style={styles.container}>
+        <>
             <AppHeader title='Edit Match' showBack />
             <MatchEditor initialMatch={match} onSave={save} onAddPlayers={addPlayers} />
-        </View>
+        </>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.white,
-    },
-});

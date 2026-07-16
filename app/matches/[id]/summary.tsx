@@ -21,6 +21,7 @@ import * as Sharing from "expo-sharing";
 import React, { useEffect, useState } from "react";
 import { Alert, ScrollView, StyleSheet, View } from "react-native";
 import { Button, DataTable, Text } from "react-native-paper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface BattingRow {
     playerId: string;
@@ -316,6 +317,7 @@ function buildInningsView(innings: InningsModel, match: MatchModel): InningsView
 
 export default function Summary() {
     const router = useRouter();
+    const insets = useSafeAreaInsets();
     const [match, setMatch] = useState<MatchModel | null>(null);
     const [inningsViews, setInningsViews] = useState<InningsView[]>([]);
     const [activeIndex, setActiveIndex] = useState(0);
@@ -582,7 +584,7 @@ export default function Summary() {
                                 <DataTable.Title style={styles.colNum}>
                                     <Text style={styles.th}>W</Text>
                                 </DataTable.Title>
-                                <DataTable.Title style={styles.colNum}>
+                                <DataTable.Title style={styles.colEconomy}>
                                     <Text style={styles.th}>ECON</Text>
                                 </DataTable.Title>
                             </DataTable.Header>
@@ -609,7 +611,7 @@ export default function Summary() {
                                     <DataTable.Cell style={styles.colNum}>
                                         <Text style={[styles.td, styles.bold]}>{row.wickets}</Text>
                                     </DataTable.Cell>
-                                    <DataTable.Cell style={styles.colNum}>
+                                    <DataTable.Cell style={styles.colEconomy}>
                                         <Text style={styles.td}>{row.economy}</Text>
                                     </DataTable.Cell>
                                 </DataTable.Row>
@@ -618,7 +620,7 @@ export default function Summary() {
                     </View>
                 )}
             </ScrollView>
-            <View style={styles.bottomButtons}>
+            <View style={[styles.bottomButtons, { paddingBottom: Math.max(insets.bottom, Spacing.defaultSpace) }]}>
                 <Button mode='contained' onPress={() => router.replace("/")} style={{ flex: 1 }} icon='arrow-left'>
                     Back to Dashboard
                 </Button>
@@ -857,6 +859,12 @@ const styles = StyleSheet.create({
 
     colNum: {
         width: 32,
+        flex: 0,
+        justifyContent: "center",
+    },
+
+    colEconomy: {
+        width: 48,
         flex: 0,
         justifyContent: "center",
     },

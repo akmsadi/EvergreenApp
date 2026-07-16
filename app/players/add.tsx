@@ -13,7 +13,7 @@ export default function AddPlayerScreen() {
 
             <PlayerEditor
                 onSave={(player) => {
-                    PlayerRepository.insert(player);
+                    PlayerRepository.insertAppPlayer(player);
                     router.back();
                 }}
             />

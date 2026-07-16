@@ -5,6 +5,7 @@ import { PlayerModel } from "@/database/models/PlayerModel";
 import PlayerRepository from "@/database/repositories/PlayerRepository";
 import ApiService from "@/services/ApiService";
 import SyncService from "@/services/SyncService";
+import { Toast } from "@/services/Toast";
 import { PlayerIDs } from "@/types/player";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
@@ -16,7 +17,10 @@ function PlayerCard({ player, router }: { player: PlayerModel; router: any }) {
         <View style={styles.item}>
             <View style={styles.itemHeader}>
                 <View style={styles.nameRow}>
-                    <Text style={styles.playerName}>{player.name}</Text>
+                    <View style={styles.playerNameRow}>
+                        <Text style={styles.playerName}>{player.name}</Text>
+                        {player.organization && <Text style={styles.playerMeta}>• {player.organization}</Text>}
+                    </View>
                     {player.server_id === null && (
                         <IconButton icon='pencil-outline' size={18} onPress={() => router.push(`/players/${player.id}/edit`)} style={{ margin: 0 }} />
                     )}
@@ -30,7 +34,7 @@ function PlayerCard({ player, router }: { player: PlayerModel; router: any }) {
 export default function Players() {
     const router = useRouter();
     const [players, setPlayers] = useState<PlayerModel[]>([]);
-    const [statusFilter, setStatusFilter] = useState<"all" | "approved" | "guest" | "external">("all");
+    const [statusFilter, setStatusFilter] = useState<"all" | "approved" | "guest" | "external">("approved");
     const [newPlayersCount, setNewPlayersCount] = useState<number>(0);
 
     useFocusEffect(
@@ -56,10 +60,10 @@ export default function Players() {
     const downloadPlayers = async () => {
         try {
             const count = await SyncService.syncPlayers();
-            Alert.alert("Download Complete", `${count} players synchronized successfully.`);
             syncPlayers();
+            Toast.success(`${count} players synchronized successfully.`);
         } catch (error) {
-            Alert.alert("Download Failed", error instanceof Error ? error.message : "Unknown error");
+            Toast.error(`Download Failed: ${error instanceof Error ? error.message : "Unknown error"}`);
         }
     };
 
@@ -97,10 +101,11 @@ export default function Players() {
                     {
                         value: "all",
                         label: "All",
+                        style: { borderRadius: 8 },
                     },
                     {
                         value: "approved",
-                        label: "Approved",
+                        label: "Member",
                     },
                     {
                         value: "guest",
@@ -109,6 +114,7 @@ export default function Players() {
                     {
                         value: "external",
                         label: "External",
+                        style: { borderRadius: 8 },
                     },
                 ]}
                 style={styles.filter}
@@ -161,26 +167,31 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
 
+    playerNameRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        flexWrap: "wrap",
+        gap: 6,
+    },
+
     playerName: {
         color: "#111",
         fontSize: 14,
     },
 
-    playerStatus: {
-        color: "#1f7a8c",
-        fontSize: 12,
-        fontWeight: "700",
-        borderWidth: 1,
-        borderColor: "#1f7a8c",
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 8,
+    playerMeta: {
+        color: Colors.darkGray,
+        fontSize: 14,
     },
 
-    playerMeta: {
-        color: "#444",
-        fontSize: 14,
-        lineHeight: 20,
+    playerStatus: {
+        color: Colors.white,
+        fontSize: 12,
+        backgroundColor: "#1f7a8c",
+        paddingHorizontal: 6,
+        paddingVertical: 4,
+        borderRadius: 4,
+        textTransform: "capitalize",
     },
 
     separator: {
@@ -206,6 +217,8 @@ const styles = StyleSheet.create({
     filter: {
         padding: Spacing.defaultSpace,
         backgroundColor: Colors.white,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.darkGray,
     },
 
     listContent: {

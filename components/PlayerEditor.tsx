@@ -1,10 +1,10 @@
+import { Colors } from "@/constants/colors";
+import { Spacing } from "@/constants/spacing";
 import React, { useEffect, useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
 import { Button, SegmentedButtons, TextInput } from "react-native-paper";
 import { Dropdown } from "react-native-paper-dropdown";
-
-import { Colors } from "@/constants/colors";
-import { Spacing } from "@/constants/spacing";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PlayerModel } from "@/database/models/PlayerModel";
 import PlayerRepository from "@/database/repositories/PlayerRepository";
@@ -16,6 +16,7 @@ type PlayerEditorProps = {
 };
 
 export default function PlayerEditor({ initialPlayer, onSave, onDelete }: PlayerEditorProps) {
+    const insets = useSafeAreaInsets();
     const [name, setName] = useState("");
     const [organization, setOrganization] = useState("");
     const [phone, setPhone] = useState("");
@@ -29,6 +30,7 @@ export default function PlayerEditor({ initialPlayer, onSave, onDelete }: Player
             value: string;
         }[]
     >([]);
+    const [nameError, setNameError] = useState("");
 
     useEffect(() => {
         loadPlayers();
@@ -60,10 +62,10 @@ export default function PlayerEditor({ initialPlayer, onSave, onDelete }: Player
     }
 
     function handleSave() {
+        setNameError("");
         const trimmedName = name.trim();
-
         if (!trimmedName) {
-            alert("Player name is required.");
+            setNameError("Player name is required.");
             return;
         }
 
@@ -101,16 +103,11 @@ export default function PlayerEditor({ initialPlayer, onSave, onDelete }: Player
             behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
             <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps='handled'>
-                <TextInput style={styles.input} label='Player Name' mode='outlined' value={name} onChangeText={setName} />
-
+                <TextInput style={styles.input} label='Player Name' mode='outlined' value={name} onChangeText={setName} error={!!nameError} />
                 <TextInput label='Organization' mode='outlined' value={organization} onChangeText={setOrganization} />
-
                 <TextInput label='Phone' mode='outlined' keyboardType='phone-pad' value={phone} onChangeText={setPhone} />
-
                 <TextInput label='Email' mode='outlined' keyboardType='email-address' autoCapitalize='none' value={email} onChangeText={setEmail} />
-
                 <TextInput label='Address' mode='outlined' multiline numberOfLines={3} value={address} onChangeText={setAddress} />
-
                 <SegmentedButtons
                     style={styles.segmented}
                     value={status}
@@ -118,7 +115,8 @@ export default function PlayerEditor({ initialPlayer, onSave, onDelete }: Player
                     buttons={[
                         {
                             value: "approved",
-                            label: "Approved",
+                            label: "Member",
+                            style: { borderRadius: 8 },
                         },
                         {
                             value: "guest",
@@ -127,6 +125,7 @@ export default function PlayerEditor({ initialPlayer, onSave, onDelete }: Player
                         {
                             value: "external",
                             label: "External",
+                            style: { borderRadius: 8 },
                         },
                     ]}
                 />
@@ -136,7 +135,14 @@ export default function PlayerEditor({ initialPlayer, onSave, onDelete }: Player
                 )}
             </ScrollView>
 
-            <View style={styles.bottomButtons}>
+            <View
+                style={[
+                    styles.bottomButtons,
+                    {
+                        paddingBottom: Math.max(insets.bottom, Spacing.defaultSpace),
+                    },
+                ]}
+            >
                 <View style={styles.buttonWrapper}>
                     <Button mode='contained' icon='content-save' style={styles.button} onPress={handleSave}>
                         Save Player

@@ -1,9 +1,3 @@
-import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useMemo, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
-import { Button, IconButton, SegmentedButtons, Text, TextInput } from "react-native-paper";
-import { Dropdown } from "react-native-paper-dropdown";
-
 import AppHeader from "@/components/AppHeader";
 import { Colors } from "@/constants/colors";
 import { Spacing } from "@/constants/spacing";
@@ -11,6 +5,12 @@ import { PlayerModel } from "@/database/models/PlayerModel";
 import MatchPlayerRepository from "@/database/repositories/MatchPlayerRepository";
 import MatchRepository from "@/database/repositories/MatchRepository";
 import PlayerRepository from "@/database/repositories/PlayerRepository";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useMemo, useState } from "react";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { Button, IconButton, SegmentedButtons, Text, TextInput } from "react-native-paper";
+import { Dropdown } from "react-native-paper-dropdown";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type TeamKey = "teamA" | "teamB";
 
@@ -25,6 +25,7 @@ type TeamSelectionPanelProps = {
 
 export default function MatchPlayersScreen() {
     const router = useRouter();
+    const insets = useSafeAreaInsets();
     const { id } = useLocalSearchParams<{ id?: string }>();
 
     const [players, setPlayers] = useState<PlayerModel[]>([]);
@@ -171,7 +172,7 @@ export default function MatchPlayersScreen() {
                     )}
                 </View>
 
-                <View style={styles.footer}>
+                <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, Spacing.defaultSpace) }]}>
                     <Button mode='contained' onPress={handleSave} style={{ borderRadius: 8 }}>
                         Save
                     </Button>
