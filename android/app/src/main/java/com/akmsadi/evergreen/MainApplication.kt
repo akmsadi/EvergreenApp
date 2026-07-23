@@ -1,4 +1,4 @@
-package com.evergreenapp
+package com.akmsadi.evergreen
 
 import android.app.Application
 import android.content.res.Configuration
