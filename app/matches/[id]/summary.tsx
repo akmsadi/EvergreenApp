@@ -347,7 +347,7 @@ export default function Summary() {
     if (!match) {
         return (
             <View style={styles.container}>
-                <AppHeader title='Match Result' showBack />
+                <AppHeader showBack />
             </View>
         );
     }
@@ -391,12 +391,7 @@ export default function Summary() {
 
     return (
         <View style={styles.container}>
-            <AppHeader
-                title='Match Result'
-                showBack='/matches'
-                rightIcon={isGeneratingPdf ? "progress-download" : "download"}
-                onRightPress={() => handleDownloadPdf(match)}
-            />
+            <AppHeader showBack='/matches' />
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.headerPanel}>
@@ -405,6 +400,9 @@ export default function Summary() {
                         <View style={styles.statusBadge}>
                             <Text style={styles.statusBadgeText}>{match.match_status.toUpperCase()}</Text>
                         </View>
+                        <Button icon={isGeneratingPdf ? "progress-download" : "download"} onPress={() => handleDownloadPdf(match)}>
+                            Download
+                        </Button>
                     </View>
 
                     <Text style={styles.matchTitle}>

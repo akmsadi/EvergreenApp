@@ -9,7 +9,7 @@ export default function AddPlayerScreen() {
 
     return (
         <View style={{ flex: 1 }}>
-            <AppHeader title='Add Player' showBack />
+            <AppHeader showBack />
 
             <PlayerEditor
                 onSave={(player) => {

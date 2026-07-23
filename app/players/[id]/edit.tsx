@@ -11,7 +11,7 @@ export default function EditPlayerScreen() {
 
     return (
         <View style={{ flex: 1 }}>
-            <AppHeader title='Edit Player' showBack />
+            <AppHeader showBack />
 
             <PlayerEditor
                 initialPlayer={player}

@@ -23,7 +23,7 @@ export default function EndInningsScreen() {
 
     return (
         <>
-            <AppHeader title='End Innings' showBack />
+            <AppHeader showBack />
 
             <View style={styles.container}>
                 <Card>

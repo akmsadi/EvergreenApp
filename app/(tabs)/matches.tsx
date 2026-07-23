@@ -1,5 +1,6 @@
 import AppHeader from "@/components/AppHeader";
 import { Colors } from "@/constants/colors";
+import { Spacing } from "@/constants/spacing";
 import { MatchModel } from "@/database/models/MatchModel";
 import MatchPlayerRepository from "@/database/repositories/MatchPlayerRepository";
 import MatchRepository from "@/database/repositories/MatchRepository";
@@ -7,8 +8,8 @@ import ScoreEngine from "@/features/scoring/engine/ScoreEngine";
 import { formatDate } from "@/utils/Common";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
-import { Alert, FlatList, StyleSheet, Text, View } from "react-native";
-import { Button } from "react-native-paper";
+import { Alert, FlatList, StyleSheet, View } from "react-native";
+import { Button, Text } from "react-native-paper";
 
 function MatchCard({ match, onDelete, onCopy }: { match: MatchModel; onDelete: (id: number) => void; onCopy: (id: number) => void }) {
     const router = useRouter();
@@ -28,15 +29,47 @@ function MatchCard({ match, onDelete, onCopy }: { match: MatchModel; onDelete: (
         }
     };
     return (
-        <View style={styles.item}>
-            <View style={[styles.itemHeader]}>
-                <Text style={styles.matchTitle}>{`${match.team_name} vs ${match.opponent_name}`}</Text>
-                <Text style={styles.matchMeta}>{formatDate(match.scheduled_at)}</Text>
-            </View>
-            <View style={styles.itemHeader}>
-                <Text style={styles.matchMeta}>{match.result_summary || "No result available"}</Text>
+        <View style={styles.matchCard}>
+            {/* Header */}
+            <View style={styles.cardHeader}>
+                <View>
+                    <Text style={styles.date}>{formatDate(match.scheduled_at)}</Text>
+
+                    <Text style={styles.tournament}>
+                        {match.match_type.toUpperCase()} • {match.venue}
+                    </Text>
+                </View>
+
+                <View
+                    style={[
+                        styles.statusBadge,
+                        {
+                            backgroundColor: match.match_status === "scheduled" ? "#E53935" : "#43A047",
+                        },
+                    ]}
+                >
+                    <Text style={styles.statusText}>{match.match_status.toUpperCase()}</Text>
+                </View>
             </View>
 
+            <View style={styles.divider} />
+
+            {/* Teams */}
+            <View style={styles.teamRow}>
+                <View style={styles.team}>
+                    <Text style={styles.flag}>🏏</Text>
+                    <Text style={styles.teamName}>{match.team_name}</Text>
+                </View>
+                <Text style={styles.vs}>VS</Text>
+                <View style={styles.team}>
+                    <Text style={styles.teamName}>{match.opponent_name}</Text>
+                    <Text style={styles.flag}>🏏</Text>
+                </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            {/* Footer */}
             <View style={styles.actionRow}>
                 {!!match.result_summary && (
                     <>
@@ -62,13 +95,19 @@ function MatchCard({ match, onDelete, onCopy }: { match: MatchModel; onDelete: (
                 {match.match_status === "scheduled" && (
                     <>
                         <View style={styles.actionButton}>
-                            <Button mode='outlined' icon='play' style={{ borderRadius: 8 }} compact onPress={() => handleStartMatch(match.id)}>
-                                Start
+                            <Button
+                                mode='contained'
+                                icon='delete'
+                                style={{ borderRadius: 8, backgroundColor: Colors.danger }}
+                                compact
+                                onPress={() => onDelete(match.id)}
+                            >
+                                Delete
                             </Button>
                         </View>
                         <View style={styles.actionButton}>
-                            <Button mode='contained' icon='delete' style={{ borderRadius: 8 }} compact onPress={() => onDelete(match.id)}>
-                                Delete
+                            <Button mode='contained' icon='play' style={{ borderRadius: 8 }} compact onPress={() => handleStartMatch(match.id)}>
+                                Start
                             </Button>
                         </View>
                     </>
@@ -131,8 +170,10 @@ export default function Matches() {
 
     return (
         <View style={styles.container}>
-            <AppHeader title='Matches' rightIcon='plus' onRightPress={addMatch} />
-
+            <AppHeader />
+            <Text variant='titleLarge' style={{ padding: Spacing.defaultSpace }}>
+                Matches
+            </Text>
             <FlatList
                 data={matches}
                 keyExtractor={(item) => item.id.toString()}
@@ -214,5 +255,76 @@ const styles = StyleSheet.create({
 
     actionButton: {
         flex: 1,
+    },
+
+    matchCard: {
+        backgroundColor: Colors.white,
+        borderRadius: 8,
+        marginHorizontal: Spacing.defaultSpace,
+        padding: Spacing.defaultSpace,
+        // elevation: 1,
+    },
+
+    cardHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+
+    date: {
+        fontSize: 18,
+        fontWeight: "700",
+        color: Colors.black,
+    },
+
+    tournament: {
+        marginTop: 4,
+        color: "#777",
+        fontSize: 13,
+    },
+
+    statusBadge: {
+        paddingHorizontal: 12,
+        paddingVertical: 5,
+        borderRadius: 6,
+    },
+
+    statusText: {
+        color: "#FFF",
+        fontSize: 11,
+        fontWeight: "700",
+    },
+
+    divider: {
+        height: 1,
+        backgroundColor: "#ECECEC",
+        marginVertical: 10,
+    },
+
+    teamRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+    },
+
+    team: {
+        flexDirection: "row",
+        alignItems: "center",
+        flex: 1,
+    },
+
+    flag: {
+        fontSize: 28,
+    },
+
+    teamName: {
+        fontSize: 20,
+        fontWeight: "600",
+        marginHorizontal: 10,
+    },
+
+    vs: {
+        fontWeight: "700",
+        color: Colors.primary,
     },
 });

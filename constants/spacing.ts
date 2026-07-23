@@ -1,5 +1,5 @@
 export const Spacing = {
-    defaultSpace: 16,
+    defaultSpace: 10,
     space14: 14,
     space12: 12,
     space10: 10,

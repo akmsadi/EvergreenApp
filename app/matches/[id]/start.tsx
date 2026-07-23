@@ -146,7 +146,7 @@ export default function StartMatchScreen() {
 
     return (
         <View style={styles.container}>
-            <AppHeader title='Start Match' />
+            <AppHeader />
             <View style={styles.matchCard}>
                 <View style={styles.matchRow}>
                     <Text style={styles.matchTitle}>

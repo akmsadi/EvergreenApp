@@ -7,25 +7,54 @@ import ApiService from "@/services/ApiService";
 import SyncService from "@/services/SyncService";
 import { Toast } from "@/services/Toast";
 import { PlayerIDs } from "@/types/player";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
-import { Alert, FlatList, StyleSheet, Text, View } from "react-native";
-import { Button, IconButton, SegmentedButtons } from "react-native-paper";
+import { Alert, FlatList, StyleSheet, View } from "react-native";
+import { Avatar, Button, SegmentedButtons, Text } from "react-native-paper";
 
 function PlayerCard({ player, router }: { player: PlayerModel; router: any }) {
     return (
-        <View style={styles.item}>
-            <View style={styles.itemHeader}>
-                <View style={styles.nameRow}>
-                    <View style={styles.playerNameRow}>
-                        <Text style={styles.playerName}>{player.name}</Text>
-                        {player.organization && <Text style={styles.playerMeta}>• {player.organization}</Text>}
-                    </View>
-                    {player.server_id === null && (
-                        <IconButton icon='pencil-outline' size={18} onPress={() => router.push(`/players/${player.id}/edit`)} style={{ margin: 0 }} />
+        <View style={styles.card}>
+            {/* Avatar */}
+            <Avatar.Icon size={50} icon='account' style={styles.avatar} />
+
+            {/* Details */}
+            <View style={styles.content}>
+                <View style={styles.row}>
+                    <Text variant='headlineSmall' style={styles.name} numberOfLines={1}>
+                        {player.name}
+                    </Text>
+                    {!!player.organization && (
+                        <View style={{ flexDirection: "row" }}>
+                            <MaterialCommunityIcons name='domain' size={14} color={Colors.darkGray} />
+                            <Text style={styles.grayText}>{player.organization}</Text>
+                        </View>
                     )}
                 </View>
-                <Text style={styles.playerStatus}>{player.status}</Text>
+
+                <View style={{ flexDirection: "row" }}>
+                    {player.status === "approved" && (
+                        <>
+                            <MaterialCommunityIcons name='shield-check' size={15} color={Colors.secondary} />
+                            <Text style={styles.greenText}>Evergreen Player</Text>
+                        </>
+                    )}
+                    {player.status === "guest" && (
+                        <>
+                            <MaterialIcons name='insert-invitation' size={15} color={Colors.secondary} />
+                            <Text style={styles.greenText}>Guest Of {player.guest_of_player_name}</Text>
+                        </>
+                    )}
+                    {player.status === "external" && (
+                        <>
+                            <FontAwesome name='external-link' size={15} color={Colors.secondary} />
+                            <Text style={styles.greenText}>External matches</Text>
+                        </>
+                    )}
+                </View>
             </View>
         </View>
     );
@@ -87,13 +116,7 @@ export default function Players() {
 
     return (
         <View style={{ flex: 1 }}>
-            <AppHeader
-                title='Players'
-                rightIcon='plus'
-                onRightPress={() => {
-                    router.push("/players/add");
-                }}
-            />
+            <AppHeader />
             <SegmentedButtons
                 value={statusFilter}
                 onValueChange={(value) => setStatusFilter(value as "all" | "approved" | "guest" | "external")}
@@ -131,24 +154,21 @@ export default function Players() {
                 }
                 renderItem={({ item }) => <PlayerCard player={item} router={router} />}
             />
-            <View style={styles.bottomButtons}>
-                <View style={styles.buttonRow}>
-                    {newPlayersCount > 0 && (
-                        <View style={styles.buttonWrapper}>
-                            <Button mode='text' icon='upload' onPress={uploadPlayers}>
-                                Upload List ({newPlayersCount})
-                            </Button>
-                        </View>
-                    )}
+            <View style={styles.actionRow}>
+                <Button mode='outlined' icon='plus' onPress={() => router.push(`/players/add`)} style={styles.actionButton} labelStyle={{ color: Colors.text }}>
+                    Add Player
+                </Button>
+                {newPlayersCount > 0 && (
+                    <Button mode='outlined' icon='upload' onPress={uploadPlayers} style={styles.actionButton} labelStyle={{ color: Colors.text }}>
+                        Upload List ({newPlayersCount})
+                    </Button>
+                )}
 
-                    {newPlayersCount <= 0 && (
-                        <View style={styles.buttonWrapper}>
-                            <Button mode='text' icon='download' onPress={downloadPlayers}>
-                                Download List
-                            </Button>
-                        </View>
-                    )}
-                </View>
+                {newPlayersCount <= 0 && (
+                    <Button mode='outlined' icon='download' onPress={downloadPlayers} style={styles.actionButton} labelStyle={{ color: Colors.text }}>
+                        Download List
+                    </Button>
+                )}
             </View>
         </View>
     );
@@ -167,37 +187,49 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
 
-    playerNameRow: {
+    card: {
+        backgroundColor: Colors.white,
+        padding: 8,
+        flexDirection: "row",
+    },
+
+    avatar: {
+        backgroundColor: "#DCE9DE",
+        borderRadius: 0,
+    },
+
+    content: {
+        flex: 1,
+        marginHorizontal: Spacing.defaultSpace,
+    },
+
+    name: {
+        fontWeight: "700",
+        fontSize: 14,
+    },
+
+    row: {
         flexDirection: "row",
         alignItems: "center",
-        flexWrap: "wrap",
-        gap: 6,
+        justifyContent: "space-between",
     },
 
-    playerName: {
-        color: "#111",
-        fontSize: 14,
-    },
-
-    playerMeta: {
-        color: Colors.darkGray,
-        fontSize: 14,
-    },
-
-    playerStatus: {
-        color: Colors.white,
+    greenText: {
+        marginLeft: 4,
+        fontWeight: "700",
+        color: Colors.secondary,
         fontSize: 12,
-        backgroundColor: "#1f7a8c",
-        paddingHorizontal: 6,
-        paddingVertical: 4,
-        borderRadius: 4,
-        textTransform: "capitalize",
+    },
+
+    grayText: {
+        marginLeft: 4,
+        color: Colors.textSecondary,
+        fontSize: 12,
     },
 
     separator: {
         height: 1,
         backgroundColor: "#eee",
-        marginLeft: 20,
     },
 
     emptyContainer: {
@@ -210,12 +242,8 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
 
-    button: {
-        marginBottom: 10,
-    },
-
     filter: {
-        padding: Spacing.defaultSpace,
+        padding: 8,
         backgroundColor: Colors.white,
         borderBottomWidth: 1,
         borderBottomColor: Colors.darkGray,
@@ -223,27 +251,21 @@ const styles = StyleSheet.create({
 
     listContent: {
         paddingBottom: 100,
+        margin: Spacing.defaultSpace,
     },
 
-    bottomButtons: {
-        backgroundColor: Colors.white,
+    actionRow: {
+        flexDirection: "row",
+        gap: 8,
+        padding: 8,
         borderTopWidth: 1,
-        borderTopColor: Colors.darkGray,
-        padding: Spacing.space10,
+        borderColor: Colors.darkGray,
+        backgroundColor: Colors.white,
     },
 
-    buttonRow: {
-        flexDirection: "row",
-        gap: 10,
-    },
-
-    buttonWrapper: {
+    actionButton: {
         flex: 1,
-    },
-
-    nameRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 6,
+        borderRadius: 8,
+        color: Colors.black,
     },
 });

@@ -15,7 +15,7 @@ export default function AddMatch() {
 
     return (
         <>
-            <AppHeader title='New Match' showBack />
+            <AppHeader showBack />
 
             <MatchEditor initialMatch={null} onSave={save} />
         </>

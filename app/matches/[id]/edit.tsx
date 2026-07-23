@@ -34,7 +34,7 @@ export default function EditMatch() {
 
     return (
         <>
-            <AppHeader title='Edit Match' showBack />
+            <AppHeader showBack />
             <MatchEditor initialMatch={match} onSave={save} onAddPlayers={addPlayers} />
         </>
     );

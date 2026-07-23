@@ -68,7 +68,7 @@ export default function Bowler() {
 
     return (
         <>
-            <AppHeader title='Change Bowler' showBack />
+            <AppHeader showBack />
 
             <ScrollView contentContainerStyle={styles.container}>
                 <Card style={{ backgroundColor: Colors.white }}>

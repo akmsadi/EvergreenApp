@@ -1,3 +1,4 @@
+import AppContainer from "@/components/AppContainer";
 import AppHeader from "@/components/AppHeader";
 import { Colors } from "@/constants/colors";
 import { Spacing } from "@/constants/spacing";
@@ -6,8 +7,8 @@ import MatchRepository from "@/database/repositories/MatchRepository";
 import ScoreEngine from "@/features/scoring/engine/ScoreEngine";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
-import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
-import { Button, FAB } from "react-native-paper";
+import { Alert, ScrollView, StyleSheet, View } from "react-native";
+import { Button, FAB, Text } from "react-native-paper";
 
 export default function DashboardScreen() {
     const router = useRouter();
@@ -53,125 +54,113 @@ export default function DashboardScreen() {
     };
 
     return (
-        <View style={styles.container}>
-            <AppHeader title='🏏 Evergreen Scorer' />
+        <AppContainer>
+            <AppHeader />
             <ScrollView style={styles.scheduledContainer} contentContainerStyle={styles.scheduledContent} showsVerticalScrollIndicator={false}>
                 {scheduledMatches.length > 0 ? (
-                    scheduledMatches.map((match) => (
-                        <View key={match.id} style={styles.matchCard}>
-                            {/* Teams */}
-                            <View style={styles.teamRow}>
-                                <View style={styles.teamBlock}>
-                                    <View style={styles.logo}>
-                                        <Text style={styles.logoText}>🏏</Text>
+                    <>
+                        <Text variant='titleLarge' style={{ marginBottom: Spacing.defaultSpace }}>
+                            Matches
+                        </Text>
+                        {scheduledMatches.map((match) => (
+                            <View key={match.id} style={styles.matchCard}>
+                                {/* Teams */}
+                                <View style={styles.teamRow}>
+                                    <View style={styles.teamBlock}>
+                                        <View style={styles.logo}>
+                                            <Text style={styles.logoText}>🏏</Text>
+                                        </View>
+
+                                        <Text numberOfLines={2} style={styles.teamName}>
+                                            {match.team_name}
+                                        </Text>
                                     </View>
 
-                                    <Text numberOfLines={2} style={styles.teamName}>
-                                        {match.team_name}
-                                    </Text>
-                                </View>
-
-                                <View style={styles.vsCircle}>
-                                    <Text style={styles.vsText}>VS</Text>
-                                </View>
-
-                                <View style={styles.teamBlock}>
-                                    <View style={styles.logo}>
-                                        <Text style={styles.logoText}>🏏</Text>
+                                    <View style={styles.vsCircle}>
+                                        <Text style={styles.vsText}>VS</Text>
                                     </View>
 
-                                    <Text numberOfLines={2} style={styles.teamName}>
-                                        {match.opponent_name}
-                                    </Text>
+                                    <View style={styles.teamBlock}>
+                                        <View style={styles.logo}>
+                                            <Text style={styles.logoText}>🏏</Text>
+                                        </View>
+
+                                        <Text numberOfLines={2} style={styles.teamName}>
+                                            {match.opponent_name}
+                                        </Text>
+                                    </View>
+                                </View>
+
+                                <View style={styles.infoRow}>
+                                    <View style={styles.infoColumn}>
+                                        <Text style={styles.matchSubTitle}>
+                                            {match.match_type.toUpperCase()} • {match.format_overs} Overs
+                                        </Text>
+                                    </View>
+
+                                    <View style={styles.infoColumn}>
+                                        <Text style={styles.venue}>📍 {match.venue || "TBA"}</Text>
+                                    </View>
+                                </View>
+
+                                <View style={styles.divider} />
+
+                                <View style={styles.actionRow}>
+                                    <View style={styles.actionItem}>
+                                        <Button
+                                            mode='text'
+                                            icon='pencil'
+                                            contentStyle={styles.buttonContent}
+                                            style={styles.fullButton}
+                                            onPress={() => router.push(`/matches/${match.id}/edit`)}
+                                        >
+                                            Edit
+                                        </Button>
+                                    </View>
+
+                                    <View style={styles.verticalDivider} />
+
+                                    <View style={styles.actionItem}>
+                                        <Button
+                                            mode='text'
+                                            icon='delete'
+                                            textColor='#D32F2F'
+                                            contentStyle={styles.buttonContent}
+                                            style={styles.fullButton}
+                                            onPress={() => handleDeleteMatch(match.id)}
+                                        >
+                                            Delete
+                                        </Button>
+                                    </View>
+
+                                    <View style={styles.verticalDivider} />
+
+                                    <View style={styles.actionItem}>
+                                        <Button
+                                            mode='text'
+                                            icon='play'
+                                            contentStyle={styles.buttonContent}
+                                            style={styles.fullButton}
+                                            onPress={() => handleStartMatch(match.id)}
+                                        >
+                                            Start
+                                        </Button>
+                                    </View>
                                 </View>
                             </View>
-
-                            <View style={styles.infoRow}>
-                                <View style={styles.infoColumn}>
-                                    <Text style={styles.matchSubTitle}>
-                                        {match.match_type.toUpperCase()} • {match.format_overs} Overs
-                                    </Text>
-                                </View>
-
-                                <View style={styles.infoColumn}>
-                                    <Text style={styles.venue}>📍 {match.venue || "TBA"}</Text>
-                                </View>
-                            </View>
-
-                            <View style={styles.divider} />
-
-                            <View style={styles.actionRow}>
-                                <View style={styles.actionItem}>
-                                    <Button
-                                        mode='text'
-                                        icon='pencil'
-                                        contentStyle={styles.buttonContent}
-                                        style={styles.fullButton}
-                                        onPress={() => router.push(`/matches/${match.id}/edit`)}
-                                    >
-                                        Edit
-                                    </Button>
-                                </View>
-
-                                <View style={styles.verticalDivider} />
-
-                                <View style={styles.actionItem}>
-                                    <Button
-                                        mode='text'
-                                        icon='delete'
-                                        textColor='#D32F2F'
-                                        contentStyle={styles.buttonContent}
-                                        style={styles.fullButton}
-                                        onPress={() => handleDeleteMatch(match.id)}
-                                    >
-                                        Delete
-                                    </Button>
-                                </View>
-
-                                <View style={styles.verticalDivider} />
-
-                                <View style={styles.actionItem}>
-                                    <Button
-                                        mode='text'
-                                        icon='play'
-                                        contentStyle={styles.buttonContent}
-                                        style={styles.fullButton}
-                                        onPress={() => handleStartMatch(match.id)}
-                                    >
-                                        Start
-                                    </Button>
-                                </View>
-                            </View>
-                        </View>
-                    ))
+                        ))}
+                    </>
                 ) : (
                     <Text style={styles.noMatches}>No scheduled matches found.</Text>
                 )}
             </ScrollView>
 
             <FAB icon='plus' label='New Match' size='small' onPress={() => router.push("/matches/add")} style={styles.fab} />
-        </View>
+        </AppContainer>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.background,
-    },
-
-    sectionTitle: {
-        fontSize: 22,
-
-        fontWeight: "700",
-
-        paddingHorizontal: Spacing.defaultSpace,
-
-        marginTop: 12,
-
-        marginBottom: 8,
-    },
-
     noMatches: {
         textAlign: "center",
         color: "#777",
@@ -188,64 +177,6 @@ const styles = StyleSheet.create({
         paddingBottom: 100,
     },
 
-    cardHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-    },
-
-    formatBadge: {
-        backgroundColor: "#3949AB",
-        paddingHorizontal: 12,
-        paddingVertical: 5,
-        borderRadius: 20,
-    },
-
-    formatText: {
-        color: "#FFF",
-        fontWeight: "700",
-    },
-
-    statusBadge: {
-        backgroundColor: "#43A047",
-        paddingHorizontal: 12,
-        paddingVertical: 5,
-        borderRadius: 20,
-    },
-
-    statusText: {
-        color: "#FFF",
-        fontWeight: "700",
-    },
-
-    teamsContainer: {
-        alignItems: "center",
-        marginVertical: 22,
-    },
-
-    vs: {
-        fontSize: 18,
-        color: "#888",
-        marginVertical: 10,
-        fontWeight: "700",
-    },
-
-    infoContainer: {
-        marginBottom: 18,
-    },
-
-    info: {
-        fontSize: 14,
-        color: "#555",
-        marginBottom: 5,
-    },
-
-    buttonRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-    },
-
     fab: {
         position: "absolute",
         right: 20,
@@ -255,25 +186,16 @@ const styles = StyleSheet.create({
     matchCard: {
         backgroundColor: Colors.white,
         borderRadius: 8,
-        marginBottom: 18,
-        overflow: "hidden",
-        shadowColor: "#000",
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-        shadowOffset: {
-            width: 0,
-            height: 3,
-        },
-        elevation: 4,
+        elevation: 8,
         borderWidth: 1,
-        borderColor: Colors.darkGray,
+        borderColor: "#E5E7EB",
     },
 
     teamRow: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-around",
-        paddingVertical: 24,
+        paddingVertical: Spacing.defaultSpace,
     },
 
     teamBlock: {
@@ -306,17 +228,16 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         borderRadius: 30,
-        borderWidth: 2,
-        borderColor: Colors.primary,
         justifyContent: "center",
         alignItems: "center",
         marginHorizontal: 8,
+        backgroundColor: Colors.secondary,
     },
 
     vsText: {
         fontWeight: "700",
         fontSize: 18,
-        color: Colors.primary,
+        color: Colors.white,
     },
 
     matchDate: {

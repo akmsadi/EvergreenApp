@@ -1,92 +1,81 @@
 import { Colors } from "@/constants/colors";
 import { Spacing } from "@/constants/spacing";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import SecureStorage from "@/services/SecureStorage";
 import { useRouter } from "expo-router";
-import { Pressable, StyleSheet, View } from "react-native";
-import { IconButton, Text } from "react-native-paper";
+import * as React from "react";
+import { Alert, Image, StyleSheet, View } from "react-native";
+import { Appbar } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-interface AppHeaderProps {
-    title: string;
-    subtitle?: string;
-    showBack?: boolean | string;
-    rightIcon?: string;
-    onRightPress?: () => void;
-}
-
-export default function AppHeader({ title, subtitle, showBack = false, rightIcon, onRightPress }: AppHeaderProps) {
+export default function AppHeader({ showBack }: { showBack?: boolean | string }) {
     const router = useRouter();
+
+    const handleLogout = async () => {
+        Alert.alert("Logout", "Are you sure you want to logout?", [
+            {
+                text: "Cancel",
+                style: "cancel",
+            },
+            {
+                text: "Logout",
+                onPress: async () => {
+                    await SecureStorage.removeToken();
+
+                    router.replace("/");
+                },
+            },
+        ]);
+    };
 
     return (
         <SafeAreaView edges={["top"]} style={styles.safeArea}>
-            <View style={styles.container}>
-                <View style={styles.left}>
-                    {showBack && (
-                        <Pressable
-                            onPress={() => {
-                                if (typeof showBack === "string") {
-                                    router.replace(showBack as any); // or router.push(showBack as any)
-                                } else {
-                                    router.back();
-                                }
-                            }}
-                            style={{
-                                width: 40,
-                                height: 40,
-                                justifyContent: "center",
-                                alignItems: "center",
-                                marginRight: 8,
-                            }}
-                        >
-                            <MaterialCommunityIcons name='arrow-left' size={24} color={Colors.text} />
-                        </Pressable>
-                    )}
+            <Appbar.Header style={styles.header}>
+                {showBack ? (
+                    <Appbar.BackAction
+                        color={Colors.white}
+                        onPress={() => {
+                            if (typeof showBack === "string") {
+                                router.replace(showBack as any);
+                            } else {
+                                router.back();
+                            }
+                        }}
+                    />
+                ) : (
+                    <Appbar.Action icon='menu' color={Colors.darkGray} onPress={() => {}} />
+                )}
 
-                    <View>
-                        <Text variant='headlineSmall' style={styles.title}>
-                            {title}
-                        </Text>
-
-                        {subtitle && (
-                            <Text variant='bodyMedium' style={styles.subtitle}>
-                                {subtitle}
-                            </Text>
-                        )}
-                    </View>
+                {/* Center Logo */}
+                <View style={styles.logoContainer}>
+                    <Image source={require("@/assets/images/logo-evergreen.webp")} style={styles.logo} resizeMode='contain' />
                 </View>
 
-                {rightIcon && <IconButton icon={rightIcon} mode='contained' onPress={onRightPress} />}
-            </View>
+                <Appbar.Action icon='logout' color={Colors.darkGray} onPress={handleLogout} />
+            </Appbar.Header>
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
     safeArea: {
-        backgroundColor: Colors.white,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.darkGray,
+        backgroundColor: Colors.primary,
     },
 
-    container: {
-        height: 56,
-        flexDirection: "row",
-        justifyContent: "space-between",
+    header: {
+        backgroundColor: Colors.primary,
+        elevation: 0,
+        height: 60,
+        paddingBottom: Spacing.defaultSpace,
+    },
+
+    logoContainer: {
+        flex: 1,
         alignItems: "center",
-        paddingHorizontal: Spacing.defaultSpace,
+        justifyContent: "center",
     },
 
-    left: {
-        flexDirection: "row",
-        alignItems: "center",
-    },
-
-    title: {
-        fontSize: 22,
-    },
-
-    subtitle: {
-        opacity: 0.6,
-        marginTop: 2,
+    logo: {
+        width: 130,
+        height: 45,
     },
 });

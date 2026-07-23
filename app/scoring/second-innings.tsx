@@ -108,7 +108,7 @@ export default function SecondInningsScreen() {
 
     return (
         <View style={styles.container}>
-            <AppHeader title='Start 2nd Innings' />
+            <AppHeader />
 
             <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
                 <Text variant='titleLarge' style={[styles.cardTitle, { textAlign: "center" }]}>

@@ -159,7 +159,7 @@ export default function WicketScreen() {
 
     return (
         <>
-            <AppHeader title='New Batsman' showBack />
+            <AppHeader showBack />
 
             <ScrollView contentContainerStyle={styles.container}>
                 <Card>

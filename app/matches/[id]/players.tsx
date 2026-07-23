@@ -114,7 +114,7 @@ export default function MatchPlayersScreen() {
 
     return (
         <View style={styles.container}>
-            <AppHeader title='Match Players' showBack />
+            <AppHeader showBack />
 
             <View style={styles.content}>
                 <View style={styles.contentContainer}>

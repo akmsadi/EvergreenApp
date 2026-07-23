@@ -142,8 +142,12 @@ class PlayerRepository {
     }
 
     getAll(): PlayerModel[] {
-        return db.getAllSync(
-            "SELECT * FROM players ORDER BY name ASC"
+        return db.getAllSync(`
+            SELECT p.*, guest.name AS guest_of_player_name
+            FROM players p
+            LEFT JOIN players guest ON p.guest_of_player_id = guest.server_id;
+            ORDER BY name ASC
+        `
         ) as PlayerModel[];
     }
 

@@ -1,9 +1,10 @@
 import { Colors } from "@/constants/colors";
 import AuthService from "@/services/AuthService";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { router, Tabs } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabLayout() {
@@ -17,7 +18,7 @@ export default function TabLayout() {
     async function checkLogin() {
         const loggedIn = await AuthService.isLoggedIn();
         if (!loggedIn) {
-            router.replace("/login");
+            router.replace("/");
             return;
         }
         setLoading(false);
@@ -41,20 +42,61 @@ export default function TabLayout() {
         <Tabs
             screenOptions={{
                 headerShown: false,
-                tabBarStyle: {
-                    borderTopColor: Colors.darkGray,
-                    borderTopWidth: 1,
-                    paddingTop: 12,
-                    height: 60 + insets.bottom,
-                    paddingBottom: insets.bottom,
+
+                tabBarActiveTintColor: "transparent",
+                tabBarInactiveTintColor: "transparent",
+
+                tabBarLabelStyle: {
+                    fontSize: 12,
+                    fontWeight: "600",
+                    marginBottom: 4,
                 },
+
+                tabBarIconStyle: {
+                    marginTop: 4,
+                },
+
+                tabBarStyle: {
+                    backgroundColor: Colors.white,
+                    borderTopColor: "transparent",
+                    height: 65 + insets.bottom,
+                    paddingBottom: insets.bottom,
+                    paddingTop: 8,
+
+                    // Android shadow
+                    elevation: 8,
+
+                    // iOS shadow
+                    shadowColor: "#000",
+                    shadowOffset: {
+                        width: 0,
+                        height: -2,
+                    },
+                    shadowOpacity: 0.15,
+                    shadowRadius: 4,
+                },
+
+                tabBarHideOnKeyboard: true,
             }}
         >
             <Tabs.Screen
                 name='dashboard'
                 options={{
                     title: "Home",
-                    tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name='home' color={color} size={size} />,
+
+                    tabBarIcon: ({ focused }) => <FontAwesome name='home' size={24} color={focused ? Colors.secondary : Colors.dark} />,
+
+                    tabBarLabel: ({ focused }) => (
+                        <Text
+                            style={{
+                                color: focused ? Colors.secondary : Colors.dark,
+                                fontSize: 12,
+                                fontWeight: "600",
+                            }}
+                        >
+                            Home
+                        </Text>
+                    ),
                 }}
             />
 
@@ -62,7 +104,22 @@ export default function TabLayout() {
                 name='matches'
                 options={{
                     title: "Matches",
-                    tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name='cricket' color={color} size={size} />,
+
+                    tabBarIcon: ({ size, focused }) => (
+                        <MaterialCommunityIcons name={focused ? "cricket" : "cricket"} size={24} color={focused ? Colors.secondary : Colors.dark} />
+                    ),
+
+                    tabBarLabel: ({ focused }) => (
+                        <Text
+                            style={{
+                                color: focused ? Colors.secondary : Colors.dark,
+                                fontSize: 12,
+                                fontWeight: "600",
+                            }}
+                        >
+                            Matches
+                        </Text>
+                    ),
                 }}
             />
 
@@ -70,7 +127,22 @@ export default function TabLayout() {
                 name='players'
                 options={{
                     title: "Players",
-                    tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name='account-group' color={color} size={size} />,
+
+                    tabBarIcon: ({ size, focused }) => (
+                        <MaterialCommunityIcons name={focused ? "account-group" : "account-group"} size={24} color={focused ? Colors.secondary : Colors.dark} />
+                    ),
+
+                    tabBarLabel: ({ focused }) => (
+                        <Text
+                            style={{
+                                color: focused ? Colors.secondary : Colors.dark,
+                                fontSize: 12,
+                                fontWeight: "600",
+                            }}
+                        >
+                            Players
+                        </Text>
+                    ),
                 }}
             />
         </Tabs>

@@ -7,6 +7,7 @@ export interface PlayerModel {
     email: string | null;
     address: string | null;
     guest_of_player_id: string | null;
+    guest_of_player_name: string | null;
     status: string;
     total_contribution: number;
     total_expense: number;
