@@ -1,4 +1,6 @@
 import AppHeader from "@/components/AppHeader";
+import { Colors } from "@/constants/colors";
+import { Spacing } from "@/constants/spacing";
 import ScoreEngine from "@/features/scoring/engine/ScoreEngine";
 
 import { useRouter } from "expo-router";
@@ -49,12 +51,9 @@ export default function EndInningsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-
-        padding: 16,
-
-        justifyContent: "center",
-
-        gap: 16,
+        padding: Spacing.defaultSpace,
+        gap: Spacing.defaultSpace,
+        backgroundColor: Colors.background,
     },
 
     message: {

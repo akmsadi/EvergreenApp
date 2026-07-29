@@ -1,11 +1,9 @@
 import { Colors } from "@/constants/colors";
-import { Spacing } from "@/constants/spacing";
 import SecureStorage from "@/services/SecureStorage";
 import { useRouter } from "expo-router";
 import * as React from "react";
 import { Alert, Image, StyleSheet, View } from "react-native";
 import { Appbar } from "react-native-paper";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AppHeader({ showBack }: { showBack?: boolean | string }) {
     const router = useRouter();
@@ -28,7 +26,7 @@ export default function AppHeader({ showBack }: { showBack?: boolean | string })
     };
 
     return (
-        <SafeAreaView edges={["top"]} style={styles.safeArea}>
+        <View style={styles.safeArea}>
             <Appbar.Header style={styles.header}>
                 {showBack ? (
                     <Appbar.BackAction
@@ -45,14 +43,13 @@ export default function AppHeader({ showBack }: { showBack?: boolean | string })
                     <Appbar.Action icon='menu' color={Colors.darkGray} onPress={() => {}} />
                 )}
 
-                {/* Center Logo */}
                 <View style={styles.logoContainer}>
                     <Image source={require("@/assets/images/logo-evergreen.webp")} style={styles.logo} resizeMode='contain' />
                 </View>
 
                 <Appbar.Action icon='logout' color={Colors.darkGray} onPress={handleLogout} />
             </Appbar.Header>
-        </SafeAreaView>
+        </View>
     );
 }
 
@@ -65,7 +62,7 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.primary,
         elevation: 0,
         height: 60,
-        paddingBottom: Spacing.defaultSpace,
+        paddingHorizontal: 0,
     },
 
     logoContainer: {
@@ -75,7 +72,7 @@ const styles = StyleSheet.create({
     },
 
     logo: {
-        width: 130,
-        height: 45,
+        width: 120,
+        height: 40,
     },
 });

@@ -114,8 +114,11 @@ class MatchPlayerRepository {
     getRemainingBatsmen(
         matchId: number,
         team: "team_a" | "team_b",
-        inningsId: number
+        inningsId: number,
+        activePlayerIds: string[] = []
     ): MatchPlayerModel[] {
+
+        const activeExclusion = activePlayerIds.length > 0 ? `AND player_id NOT IN (${activePlayerIds.map(() => "?").join(", ")})` : "";
 
         return db.getAllSync(
             `
@@ -124,16 +127,19 @@ class MatchPlayerRepository {
         WHERE
             match_id = ?
             AND team = ?
+            ${activeExclusion}
             AND player_id NOT IN (
                 SELECT player_id
                 FROM innings_batting
                 WHERE innings_id = ?
+                AND is_out = 1
             )
         ORDER BY player_id
         `,
             [
                 matchId,
                 team,
+                ...activePlayerIds,
                 inningsId
             ]
         ) as MatchPlayerModel[];

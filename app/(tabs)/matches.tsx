@@ -230,8 +230,7 @@ const styles = StyleSheet.create({
     },
 
     separator: {
-        height: 1,
-        backgroundColor: Colors.darkGray,
+        height: 5,
     },
 
     listContent: {
@@ -262,7 +261,6 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         marginHorizontal: Spacing.defaultSpace,
         padding: Spacing.defaultSpace,
-        // elevation: 1,
     },
 
     cardHeader: {
@@ -272,7 +270,6 @@ const styles = StyleSheet.create({
     },
 
     date: {
-        fontSize: 18,
         fontWeight: "700",
         color: Colors.black,
     },
@@ -280,7 +277,7 @@ const styles = StyleSheet.create({
     tournament: {
         marginTop: 4,
         color: "#777",
-        fontSize: 13,
+        fontSize: 12,
     },
 
     statusBadge: {
@@ -298,7 +295,7 @@ const styles = StyleSheet.create({
     divider: {
         height: 1,
         backgroundColor: "#ECECEC",
-        marginVertical: 10,
+        marginVertical: Spacing.defaultSpace,
     },
 
     teamRow: {

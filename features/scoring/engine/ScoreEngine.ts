@@ -1145,6 +1145,87 @@ class ScoreEngine {
 
     }
 
+    async changeBatsman(
+        outgoingPlayerId: string,
+        incomingPlayerId: string
+    ): Promise<void> {
+
+        const innings =
+            this.inningsRepository.find(this.getActiveInningsId());
+
+        if (!innings) {
+            throw new Error("Innings not found.");
+        }
+
+        const current =
+            this.currentInningsRepository.find(innings.id!);
+
+        if (!current) {
+            throw new Error("Current innings not found.");
+        }
+
+        if (
+            outgoingPlayerId !== current.striker_id &&
+            outgoingPlayerId !== current.non_striker_id
+        ) {
+            throw new Error("Selected batsman is not currently at the crease.");
+        }
+
+        const outgoingBatting =
+            this.inningsBattingRepository.find(
+                innings.id!,
+                outgoingPlayerId
+            );
+
+        if (outgoingBatting) {
+            outgoingBatting.is_out = false;
+            outgoingBatting.dismissal_type = DismissalType.RETIRED_HURT;
+            outgoingBatting.bowler_id = undefined;
+            outgoingBatting.fielder_id = undefined;
+
+            this.inningsBattingRepository.update(
+                outgoingBatting
+            );
+        }
+
+        const returningBatting =
+            this.inningsBattingRepository.find(
+                innings.id!,
+                incomingPlayerId
+            );
+
+        if (returningBatting) {
+
+            returningBatting.is_out = false;
+            returningBatting.dismissal_type = undefined;
+            returningBatting.bowler_id = undefined;
+            returningBatting.fielder_id = undefined;
+
+            this.inningsBattingRepository.update(
+                returningBatting
+            );
+
+            if (outgoingPlayerId === current.striker_id) {
+                current.striker_id = incomingPlayerId;
+            } else {
+                current.non_striker_id = incomingPlayerId;
+            }
+
+            this.currentInningsRepository.update(current);
+
+        } else {
+
+            this.addNextBatsman(
+                innings.id!,
+                current,
+                outgoingPlayerId,
+                incomingPlayerId
+            );
+
+        }
+
+    }
+
     async recordWicket(
         runs: number,
         dismissedPlayerId: string,

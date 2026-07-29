@@ -1,4 +1,6 @@
 import AppHeader from "@/components/AppHeader";
+import { Colors } from "@/constants/colors";
+import { Spacing } from "@/constants/spacing";
 
 import MatchPlayerRepository from "@/database/repositories/MatchPlayerRepository";
 import PlayerRepository from "@/database/repositories/PlayerRepository";
@@ -79,7 +81,10 @@ export default function WicketScreen() {
 
         setFielderPlayers(fielderList);
 
-        const matchPlayers = MatchPlayerRepository.getRemainingBatsmen(innings.match_id, innings.batting_team, scoreboard.inningsId);
+        const matchPlayers = MatchPlayerRepository.getRemainingBatsmen(innings.match_id, innings.batting_team, scoreboard.inningsId, [
+            scoreboard.strikerId,
+            scoreboard.nonStrikerId,
+        ]);
 
         const list: PlayerItem[] = [];
 
@@ -259,8 +264,10 @@ export default function WicketScreen() {
 
 const styles = StyleSheet.create({
     container: {
-        padding: 16,
-        gap: 16,
+        flex: 1,
+        padding: Spacing.defaultSpace,
+        gap: Spacing.defaultSpace,
+        backgroundColor: Colors.background,
     },
 
     sectionTitle: {

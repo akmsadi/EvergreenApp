@@ -29,6 +29,11 @@ export default function ScoringScreen() {
     const [wicketRunsInput, setWicketRunsInput] = useState("0");
     const [autoSwapDisabled, setAutoSwapDisabled] = useState(!ScoreEngine.isAutoSwapEnabled());
 
+    const targetSummary =
+        scoreboard?.inningsNumber === 2 && scoreboard.targetRuns
+            ? `Target: ${scoreboard.targetRuns} • Need ${Math.max(scoreboard.targetRuns - scoreboard.totalRuns, 0)} runs`
+            : undefined;
+
     useFocusEffect(
         useCallback(() => {
             loadScoreboard();
@@ -68,6 +73,24 @@ export default function ScoringScreen() {
         });
 
         await loadScoreboard();
+    }
+
+    async function wideWicket() {
+        await ScoreEngine.scoreBall({
+            runs: 0,
+
+            extraType: ExtraType.WIDE,
+
+            extraRuns: 1,
+
+            isWicket: true,
+
+            dismissalType: DismissalType.STUMPED,
+        });
+
+        await loadScoreboard();
+
+        router.push("/scoring/wicket");
     }
 
     async function noBall(runsOffBat: number) {
@@ -160,15 +183,14 @@ export default function ScoringScreen() {
 
     return (
         <View style={styles.container}>
-            <AppHeader
-                title='Scoreboard'
-                subtitle={
-                    scoreboard?.inningsNumber === 2 && scoreboard.targetRuns
-                        ? `Target: ${scoreboard.targetRuns} • Need ${Math.max(scoreboard.targetRuns - scoreboard.totalRuns, 0)} runs`
-                        : undefined
-                }
-            />
-
+            <AppHeader />
+            {targetSummary && (
+                <View style={{ padding: Spacing.defaultSpace, borderBottomWidth: 1, borderBottomColor: Colors.darkGray }}>
+                    <Text variant='titleMedium' style={{ textAlign: "center" }}>
+                        {targetSummary}
+                    </Text>
+                </View>
+            )}
             <ScrollView contentContainerStyle={{ padding: Spacing.defaultSpace, gap: 16 }}>
                 <View style={styles.topPanelRow}>
                     <Text variant='headlineSmall'>
@@ -176,11 +198,10 @@ export default function ScoringScreen() {
                     </Text>
                     <Text>({scoreboard?.overs ?? "0.0"} overs)</Text>
                 </View>
-
                 <View>
                     <View style={styles.batsmanRow}>
                         <View style={styles.batsmanInfo}>
-                            <MaterialCommunityIcons name='cricket' size={18} color='#2E7D32' style={styles.batIcon} />
+                            <MaterialCommunityIcons name='cricket' size={14} color='#2E7D32' style={styles.batIcon} />
                             <Text style={styles.batsmanName}>{scoreboard?.strikerName ?? "Unknown"} *</Text>
                         </View>
                         <Text style={styles.batsmanScore}>{strikerStats ? `${strikerStats.runs} (${strikerStats.balls})` : "0 (0)"}</Text>
@@ -188,17 +209,17 @@ export default function ScoringScreen() {
 
                     <View style={styles.batsmanRow}>
                         <View style={styles.batsmanInfo}>
-                            <MaterialCommunityIcons name='cricket' size={18} color='#2E7D32' style={styles.batIcon} />
+                            <MaterialCommunityIcons name='cricket' size={14} color='#2E7D32' style={styles.batIcon} />
                             <Text style={styles.batsmanName}>{scoreboard?.nonStrikerName ?? "Unknown"}</Text>
                         </View>
                         <Text style={styles.batsmanScore}>{nonStrikerStats ? `${nonStrikerStats.runs} (${nonStrikerStats.balls})` : "0 (0)"}</Text>
                     </View>
 
-                    <Divider style={[styles.divider, { marginBottom: 16 }]} />
+                    <Divider style={[styles.divider, { marginBottom: 8 }]} />
 
                     <View style={styles.batsmanRow}>
                         <View style={styles.batsmanInfo}>
-                            <MaterialCommunityIcons name='baseball' size={18} color='#2E7D32' style={styles.batIcon} />
+                            <MaterialCommunityIcons name='baseball' size={14} color='#2E7D32' style={styles.batIcon} />
                             <Text style={styles.batsmanName}>{scoreboard?.bowlerName ?? "Unknown"}</Text>
                         </View>
 
@@ -233,34 +254,76 @@ export default function ScoringScreen() {
                         </View>
                     </View>
                 </View>
-
                 <Divider style={styles.divider} />
 
-                <View style={styles.buttonGrid}>
-                    <Button mode='contained' style={styles.scoreButton} contentStyle={styles.buttonContent} onPress={() => score(0)}>
-                        0
-                    </Button>
-                    <Button mode='contained' style={styles.scoreButton} contentStyle={styles.buttonContent} onPress={() => score(1)}>
-                        1
-                    </Button>
-                    <Button mode='contained' style={styles.scoreButton} contentStyle={styles.buttonContent} onPress={() => score(2)}>
-                        2
-                    </Button>
-                    <Button mode='contained' style={styles.scoreButton} contentStyle={styles.buttonContent} onPress={() => score(3)}>
-                        3
-                    </Button>
-                    <Button mode='contained' style={styles.scoreButton} contentStyle={styles.buttonContent} onPress={() => score(4)}>
-                        4
-                    </Button>
-                    <Button mode='contained' style={styles.scoreButton} contentStyle={styles.buttonContent} onPress={() => score(6)}>
-                        6
-                    </Button>
-                    <Button mode='outlined' style={styles.scoreButton} contentStyle={styles.buttonContent} onPress={() => wide(1)}>
-                        WD
-                    </Button>
-                    <Button mode='contained-tonal' style={styles.scoreButton} contentStyle={styles.buttonContent} onPress={undo}>
-                        Undo
-                    </Button>
+                <View style={styles.scoringArea}>
+                    {/* Left actions */}
+                    <View style={styles.sideActions}>
+                        <Button
+                            mode='outlined'
+                            icon='cricket'
+                            onPress={() => router.push("/scoring/change-batsman")}
+                            style={styles.sideActionButton}
+                            contentStyle={styles.sideActionContent}
+                        >
+                            Change
+                        </Button>
+
+                        <Button
+                            mode='outlined'
+                            icon='baseball'
+                            onPress={() => router.push("/scoring/bowler")}
+                            style={styles.sideActionButton}
+                            contentStyle={styles.sideActionContent}
+                        >
+                            Change
+                        </Button>
+
+                        <Button mode='contained-tonal' icon='undo' onPress={undo} style={styles.sideActionButton} contentStyle={styles.sideActionContent}>
+                            Undo
+                        </Button>
+                    </View>
+
+                    {/* Score buttons */}
+                    <View style={styles.scoreGrid}>
+                        <Button mode='contained' style={styles.scoreButton} contentStyle={styles.scoreButtonContent} onPress={() => score(0)}>
+                            0
+                        </Button>
+
+                        <Button mode='contained' style={styles.scoreButton} contentStyle={styles.scoreButtonContent} onPress={() => score(1)}>
+                            1
+                        </Button>
+
+                        <Button mode='contained' style={styles.scoreButton} contentStyle={styles.scoreButtonContent} onPress={() => score(2)}>
+                            2
+                        </Button>
+
+                        <Button mode='contained' style={styles.scoreButton} contentStyle={styles.scoreButtonContent} onPress={() => score(3)}>
+                            3
+                        </Button>
+
+                        <Button mode='contained' style={styles.scoreButton} contentStyle={styles.scoreButtonContent} onPress={() => score(4)}>
+                            4
+                        </Button>
+
+                        <Button mode='contained' style={styles.scoreButton} contentStyle={styles.scoreButtonContent} onPress={() => score(6)}>
+                            6
+                        </Button>
+
+                        <Button mode='contained' style={styles.scoreButton} contentStyle={styles.scoreButtonContent} onPress={() => wide(1)}>
+                            WD
+                        </Button>
+
+                        <Button
+                            mode='contained'
+                            style={styles.wideWicketButton}
+                            contentStyle={styles.scoreButtonContent}
+                            labelStyle={styles.wideWicketLabel}
+                            onPress={wideWicket}
+                        >
+                            WD + WK
+                        </Button>
+                    </View>
                 </View>
 
                 <View style={styles.actionBlock}>
@@ -283,7 +346,6 @@ export default function ScoringScreen() {
                         No Ball + Run Out
                     </Button>
                 </View>
-
                 <View>
                     <View style={styles.wicketSection}>
                         <View style={styles.wicketControls}>
@@ -304,12 +366,8 @@ export default function ScoringScreen() {
                 </View>
             </ScrollView>
 
-            <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, Spacing.defaultSpace) }]}>
-                <Button mode='contained' onPress={() => router.push("/scoring/bowler")} style={styles.footerButton}>
-                    Change Bowler
-                </Button>
-
-                <Button mode='outlined' onPress={() => router.push("/scoring/innings-end")} style={styles.footerButton}>
+            <View style={[styles.footer, { height: 45 + insets.bottom }]}>
+                <Button mode='outlined' onPress={() => router.push("/scoring/innings-end")} style={[styles.footerButton, { flex: 1 }]}>
                     End Innings
                 </Button>
             </View>
@@ -324,7 +382,7 @@ const styles = StyleSheet.create({
     },
 
     divider: {
-        marginVertical: 8,
+        // marginVertical: 2,
     },
 
     topPanelRow: {
@@ -476,37 +534,18 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         gap: 10,
         padding: Spacing.defaultSpace,
-        borderTopWidth: 1,
-        borderTopColor: Colors.darkGray,
         backgroundColor: Colors.white,
     },
 
     footerButton: {
-        flex: 1,
         borderRadius: 8,
-    },
-
-    buttonGrid: {
-        flexDirection: "row",
-        flexWrap: "wrap",
-        justifyContent: "space-between",
-    },
-
-    scoreButton: {
-        width: "23.5%",
-        marginBottom: 8,
-        borderRadius: 8,
-    },
-
-    buttonContent: {
-        height: 45,
     },
 
     batsmanRow: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: 10,
+        marginBottom: 8,
     },
 
     batsmanName: {
@@ -525,4 +564,15 @@ const styles = StyleSheet.create({
     batIcon: {
         marginRight: 6,
     },
+
+    scoringArea: { flexDirection: "row", gap: 10, alignItems: "stretch" },
+    sideActions: { flex: 3.5, gap: 8 },
+    sideActionButton: { flex: 1, borderRadius: 8, justifyContent: "center" },
+    sideActionContent: { flex: 1 },
+    scoreGrid: { flex: 6.5, flexDirection: "row", flexWrap: "wrap", gap: 8 },
+    scoreButton: { flexGrow: 1, flexBasis: "30%", minWidth: 0, minHeight: 44, borderRadius: 8, margin: 0 },
+    scoreButtonContent: { minHeight: 44, paddingHorizontal: 0 },
+    scoreButtonLabel: { fontSize: 14, marginHorizontal: 0 },
+    wideWicketButton: { flexGrow: 2, flexBasis: "60%", minWidth: 0, minHeight: 44, borderRadius: 8, margin: 0 },
+    wideWicketLabel: { fontSize: 13, marginHorizontal: 0 },
 });

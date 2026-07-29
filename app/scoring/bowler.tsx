@@ -95,7 +95,9 @@ export default function Bowler() {
 
 const styles = StyleSheet.create({
     container: {
+        flex: 1,
         padding: Spacing.defaultSpace,
         gap: Spacing.defaultSpace,
+        backgroundColor: Colors.background,
     },
 });

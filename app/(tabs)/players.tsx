@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
     },
 
     listContent: {
-        paddingBottom: 100,
+        paddingBottom: 30,
         margin: Spacing.defaultSpace,
     },
 
