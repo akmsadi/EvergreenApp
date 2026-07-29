@@ -121,10 +121,6 @@ export default function Matches() {
     const router = useRouter();
     const [matches, setMatches] = useState<MatchModel[]>([]);
 
-    const addMatch = () => {
-        router.push("/matches/add");
-    };
-
     useFocusEffect(
         useCallback(() => {
             setMatches(MatchRepository.getAll());
