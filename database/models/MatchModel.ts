@@ -1,5 +1,6 @@
 export interface MatchModel {
     id: number;
+    server_id: number | null;
 
     match_type: string;
     format_overs: number;
@@ -29,4 +30,14 @@ export interface MatchModel {
     from_admin: number;
     synced_at: string | null;
     dirty: number;
+}
+
+export interface ScheduledMatchPlayer {
+    player_id: string;
+    is_captain: boolean;
+}
+
+export interface ScheduledMatchModel extends MatchModel {
+    team_a_players?: ScheduledMatchPlayer[];
+    team_b_players?: ScheduledMatchPlayer[];
 }

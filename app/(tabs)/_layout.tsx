@@ -59,7 +59,9 @@ export default function TabLayout() {
                 tabBarStyle: {
                     backgroundColor: Colors.white,
                     borderTopColor: "transparent",
-                    height: 45 + insets.bottom,
+                    height: 60 + insets.bottom,
+                    paddingTop: 8,
+                    paddingBottom: insets.bottom,
 
                     // Android shadow
                     elevation: 8,

@@ -23,6 +23,7 @@ class MatchRepository {
             INSERT OR REPLACE INTO matches
             (
                 id,
+                server_id,
                 match_type,
                 format_overs,
                 venue,
@@ -42,10 +43,11 @@ class MatchRepository {
                 from_admin,
                 synced_at,
                 dirty
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `,
             [
                 match.id,
+                match.server_id,
                 match.match_type,
                 match.format_overs,
                 match.venue,

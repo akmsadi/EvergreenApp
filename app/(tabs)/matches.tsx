@@ -1,3 +1,4 @@
+import AppContainer from "@/components/AppContainer";
 import AppHeader from "@/components/AppHeader";
 import { Colors } from "@/constants/colors";
 import { Spacing } from "@/constants/spacing";
@@ -5,11 +6,12 @@ import { MatchModel } from "@/database/models/MatchModel";
 import MatchPlayerRepository from "@/database/repositories/MatchPlayerRepository";
 import MatchRepository from "@/database/repositories/MatchRepository";
 import ScoreEngine from "@/features/scoring/engine/ScoreEngine";
+import SyncService from "@/services/SyncService";
 import { formatDate } from "@/utils/Common";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import { Alert, FlatList, StyleSheet, View } from "react-native";
-import { Button, Text } from "react-native-paper";
+import { Button, FAB, Text } from "react-native-paper";
 
 function MatchCard({ match, onDelete, onCopy }: { match: MatchModel; onDelete: (id: number) => void; onCopy: (id: number) => void }) {
     const router = useRouter();
@@ -164,12 +166,22 @@ export default function Matches() {
         router.push(`/matches/${newMatch.id}/edit`);
     };
 
+    const handleDownload = () => {
+        SyncService.syncScheduledMatches();
+        setMatches(MatchRepository.getAll());
+    };
+
     return (
-        <View style={styles.container}>
+        <AppContainer>
             <AppHeader />
-            <Text variant='titleLarge' style={{ padding: Spacing.defaultSpace }}>
-                Matches
-            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: Spacing.defaultSpace }}>
+                <Text variant='titleLarge' style={{ flex: 1 }}>
+                    Matches
+                </Text>
+                <Button icon='download' mode='outlined' onPress={handleDownload} style={{ borderRadius: 8 }}>
+                    Download
+                </Button>
+            </View>
             <FlatList
                 data={matches}
                 keyExtractor={(item) => item.id.toString()}
@@ -182,7 +194,8 @@ export default function Matches() {
                 }
                 renderItem={({ item }) => <MatchCard match={item} onDelete={handleDelete} onCopy={handleCopy} />}
             />
-        </View>
+            <FAB icon='plus' label='New Match' size='small' onPress={() => router.push("/matches/add")} style={styles.fab} />
+        </AppContainer>
     );
 }
 
@@ -319,5 +332,11 @@ const styles = StyleSheet.create({
     vs: {
         fontWeight: "700",
         color: Colors.primary,
+    },
+
+    fab: {
+        position: "absolute",
+        right: 20,
+        bottom: 20,
     },
 });

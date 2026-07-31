@@ -114,6 +114,7 @@ export default function MatchEditor({ initialMatch, onSave, onAddPlayers }: Matc
 
         const match: MatchModel = {
             id: initialMatch?.id ?? Date.now(),
+            server_id: initialMatch?.server_id ?? null,
 
             match_type: matchType,
             format_overs: oversNumber,

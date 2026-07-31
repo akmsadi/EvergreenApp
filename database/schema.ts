@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
 export const CREATE_MATCHS_TABLE = `
 CREATE TABLE IF NOT EXISTS matches (
     id INTEGER PRIMARY KEY,
+    server_id INTEGER UNIQUE,
     match_type TEXT NOT NULL,
     format_overs INTEGER NOT NULL,
     venue TEXT,

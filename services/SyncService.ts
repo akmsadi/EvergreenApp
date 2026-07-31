@@ -1,6 +1,7 @@
-import { MatchModel } from "@/database/models/MatchModel";
+import { MatchModel, ScheduledMatchModel } from "@/database/models/MatchModel";
 import { PlayerModel } from "@/database/models/PlayerModel";
 import { VenueModel } from "@/database/models/VenueModel";
+import MatchPlayerRepository from "@/database/repositories/MatchPlayerRepository";
 import MatchRepository from "@/database/repositories/MatchRepository";
 import PlayerRepository from "@/database/repositories/PlayerRepository";
 import VenueRepository from "@/database/repositories/VenueRepository";
@@ -26,7 +27,7 @@ class SyncService {
      */
     async syncMatches(): Promise<number> {
         const matches = await ApiService.get<MatchModel[]>("/matches");
-
+        console.log(matches);
         MatchRepository.saveMany(
             matches.map(match => ({
                 ...match,
@@ -45,12 +46,13 @@ class SyncService {
      * Download matches from server and save to SQLite
      */
     async syncScheduledMatches(): Promise<number> {
-        const matches = await ApiService.get<MatchModel[]>("/matches/scheduled");
+        const matches = await ApiService.get<ScheduledMatchModel[]>("/matches/scheduled");
 
         MatchRepository.saveMany(
             matches.map(match => ({
                 ...match,
                 id: Number(match.id),
+                server_id: Number(match.server_id),
                 format_overs: Number(match.format_overs),
                 venue_id: match.venue_id ? Number(match.venue_id) : null,
                 synced_at: new Date().toISOString(),
@@ -58,6 +60,21 @@ class SyncService {
                 dirty: 0,
             }))
         );
+
+        matches.forEach(match => {
+            const matchId = Number(match.id);
+            const teamAPlayers = match.team_a_players ?? [];
+            const teamBPlayers = match.team_b_players ?? [];
+
+            MatchPlayerRepository.saveAssignments(
+                matchId,
+                teamAPlayers.map(player => String(player.player_id)),
+                teamBPlayers.map(player => String(player.player_id)),
+                teamAPlayers.find(player => player.is_captain)?.player_id ?? null,
+                teamBPlayers.find(player => player.is_captain)?.player_id ?? null
+            );
+        });
+
         return matches.length;
     }
 
