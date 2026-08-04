@@ -181,6 +181,30 @@ export default function ScoringScreen() {
         setAutoSwapDisabled(disabled);
     }
 
+    function formatOvers(balls: number) {
+        if (balls <= 0) {
+            return "0.0";
+        }
+
+        const overs = Math.floor(balls / 6);
+        const remainingBalls = balls % 6;
+
+        return `${overs}.${remainingBalls}`;
+    }
+
+    function getBowlerInningsMeta(bowlerStats: InningsBowlingModel | null) {
+        if (!bowlerStats) {
+            return "(0/0 in 0.0 Over • 0.00 Econ)";
+        }
+
+        const inningsBalls = bowlerStats.balls ?? 0;
+        const inningsRuns = bowlerStats.runs ?? 0;
+        const inningsWickets = bowlerStats.wickets ?? 0;
+        const economy = inningsBalls > 0 ? (inningsRuns / (inningsBalls / 6)).toFixed(2) : "0.00";
+
+        return `(${inningsWickets}/${inningsRuns} in ${formatOvers(inningsBalls)} Over  • ${economy} Econ)`;
+    }
+
     return (
         <View style={styles.container}>
             <AppHeader />
@@ -217,16 +241,18 @@ export default function ScoringScreen() {
 
                     <Divider style={[styles.divider, { marginBottom: 8 }]} />
 
-                    <View style={styles.batsmanRow}>
+                    <View style={styles.bowlerRow}>
                         <View style={styles.batsmanInfo}>
                             <MaterialCommunityIcons name='baseball' size={14} color='#2E7D32' style={styles.batIcon} />
-                            <Text style={styles.batsmanName}>{scoreboard?.bowlerName ?? "Unknown"}</Text>
+                            <View style={styles.bowlerInfoBlock}>
+                                <Text style={styles.batsmanName}>{scoreboard?.bowlerName ?? "Unknown"}</Text>
+                                <Text style={styles.bowlerMeta}>{getBowlerInningsMeta(bowlerStats)}</Text>
+                                <Text style={styles.bowlerScore}>
+                                    {bowlerStats ? `${bowlerStats.wickets}/${bowlerStats.runs} ` : "0/0 "}
+                                    <Text style={styles.bowlerScoreMuted}>{`(${bowlerStats?.balls ?? 0})`}</Text>
+                                </Text>
+                            </View>
                         </View>
-
-                        <Text style={styles.bowlerScore}>
-                            {bowlerStats ? `${bowlerStats.wickets}/${bowlerStats.runs} ` : "0/0 "}
-                            <Text style={styles.bowlerScoreMuted}>{`(${bowlerStats?.balls ?? 0})`}</Text>
-                        </Text>
                     </View>
 
                     <View style={styles.swapStrikeRow}>
@@ -279,7 +305,13 @@ export default function ScoringScreen() {
                             Change
                         </Button>
 
-                        <Button mode='contained-tonal' icon='undo' onPress={undo} style={styles.sideActionButton} contentStyle={styles.sideActionContent}>
+                        <Button
+                            mode='contained-tonal'
+                            icon='undo'
+                            onPress={undo}
+                            style={[styles.sideActionButton, { backgroundColor: Colors.danger }]}
+                            contentStyle={styles.sideActionContent}
+                        >
                             Undo
                         </Button>
                     </View>
@@ -326,48 +358,44 @@ export default function ScoringScreen() {
                     </View>
                 </View>
 
-                <View style={styles.actionBlock}>
-                    <View style={styles.noBallControls}>
+                <View style={styles.wicketSection}>
+                    <View style={styles.wicketControls}>
                         <TextInput
                             mode='flat'
                             value={noBallRunsInput}
                             onChangeText={setNoBallRunsInput}
                             keyboardType='number-pad'
-                            placeholder='Runs'
-                            style={styles.noBallInput}
+                            placeholder='Completed Runs'
+                            style={styles.wicketInput}
                         />
-
-                        <Button mode='text' onPress={submitNoBall} style={styles.noBallButton} contentStyle={styles.noBallButtonContent}>
+                        <Button mode='contained' onPress={submitNoBall} style={styles.wicketButton} contentStyle={styles.wicketButtonContent}>
                             No Ball
                         </Button>
                     </View>
-
-                    <Button mode='contained' onPress={noBallRunOut} style={styles.fullWidthActionButton}>
-                        No Ball + Run Out
-                    </Button>
                 </View>
-                <View>
-                    <View style={styles.wicketSection}>
-                        <View style={styles.wicketControls}>
-                            <TextInput
-                                mode='flat'
-                                value={wicketRunsInput}
-                                onChangeText={setWicketRunsInput}
-                                keyboardType='number-pad'
-                                style={styles.wicketInput}
-                                placeholder='Completed Runs'
-                            />
+                <Button mode='contained' onPress={noBallRunOut} style={styles.fullWidthActionButton}>
+                    No Ball + Run Out
+                </Button>
+                <View style={styles.wicketSection}>
+                    <View style={styles.wicketControls}>
+                        <TextInput
+                            mode='flat'
+                            value={wicketRunsInput}
+                            onChangeText={setWicketRunsInput}
+                            keyboardType='number-pad'
+                            style={styles.wicketInput}
+                            placeholder='Completed Runs'
+                        />
 
-                            <Button mode='text' onPress={submitWicket} style={styles.wicketButton} contentStyle={styles.wicketButtonContent}>
-                                Wicket
-                            </Button>
-                        </View>
+                        <Button mode='contained' onPress={submitWicket} style={styles.wicketButton} contentStyle={styles.wicketButtonContent}>
+                            Wicket
+                        </Button>
                     </View>
                 </View>
             </ScrollView>
 
             <View style={[styles.footer, { height: 45 + insets.bottom }]}>
-                <Button mode='outlined' onPress={() => router.push("/scoring/innings-end")} style={[styles.footerButton, { flex: 1 }]}>
+                <Button mode='outlined' onPress={() => router.push("/scoring/innings-end")} style={[styles.footerButton]}>
                     End Innings
                 </Button>
             </View>
@@ -394,7 +422,7 @@ const styles = StyleSheet.create({
     bowlerScore: {
         fontSize: 14,
         fontWeight: "600",
-        marginLeft: 12,
+        marginLeft: "auto",
     },
 
     bowlerScoreMuted: {
@@ -450,10 +478,6 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
 
-    actionBlock: {
-        gap: 10,
-    },
-
     actionLabel: {
         fontWeight: "700",
     },
@@ -500,8 +524,6 @@ const styles = StyleSheet.create({
         width: "100%",
         flexDirection: "row",
         alignItems: "stretch",
-        borderWidth: 1,
-        borderColor: Colors.darkGray,
         borderRadius: 8,
         overflow: "hidden",
         backgroundColor: "#fff",
@@ -531,14 +553,27 @@ const styles = StyleSheet.create({
     },
 
     footer: {
-        flexDirection: "row",
-        gap: 10,
+        // flexDirection: "row",
+        // gap: 10,
         padding: Spacing.defaultSpace,
         backgroundColor: Colors.white,
+
+        // Android shadow
+        elevation: 8,
+
+        // iOS shadow
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: -2,
+        },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
     },
 
     footerButton: {
         borderRadius: 8,
+        // flex: 1,
     },
 
     batsmanRow: {
@@ -559,6 +594,33 @@ const styles = StyleSheet.create({
     batsmanInfo: {
         flexDirection: "row",
         alignItems: "center",
+    },
+
+    bowlerRow: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        marginBottom: 8,
+    },
+
+    bowlerInfoBlock: {
+        flexDirection: "row",
+        marginLeft: 2,
+        flex: 1,
+    },
+
+    bowlerNameRow: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        gap: 8,
+    },
+
+    bowlerMeta: {
+        fontSize: 12,
+        color: Colors.textSecondary,
+        marginTop: 2,
+        marginLeft: 5,
     },
 
     batIcon: {

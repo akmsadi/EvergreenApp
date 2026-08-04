@@ -1,3 +1,4 @@
+import AppContainer from "@/components/AppContainer";
 import AppHeader from "@/components/AppHeader";
 import { Colors } from "@/constants/colors";
 import { Spacing } from "@/constants/spacing";
@@ -115,7 +116,7 @@ export default function Players() {
     };
 
     return (
-        <View style={{ flex: 1 }}>
+        <AppContainer>
             <AppHeader />
             <SegmentedButtons
                 value={statusFilter}
@@ -170,7 +171,7 @@ export default function Players() {
                     </Button>
                 )}
             </View>
-        </View>
+        </AppContainer>
     );
 }
 
@@ -243,10 +244,7 @@ const styles = StyleSheet.create({
     },
 
     filter: {
-        padding: 8,
-        backgroundColor: Colors.white,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.darkGray,
+        padding: Spacing.defaultSpace,
     },
 
     listContent: {

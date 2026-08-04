@@ -1,14 +1,14 @@
 import AppContainer from "@/components/AppContainer";
 import AppHeader from "@/components/AppHeader";
+import MatchCard from "@/components/MatchCard";
 import { Colors } from "@/constants/colors";
 import { Spacing } from "@/constants/spacing";
 import { MatchModel } from "@/database/models/MatchModel";
 import MatchRepository from "@/database/repositories/MatchRepository";
-import ScoreEngine from "@/features/scoring/engine/ScoreEngine";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
-import { Alert, ScrollView, StyleSheet, View } from "react-native";
-import { Button, FAB, Text } from "react-native-paper";
+import { Alert, FlatList, StyleSheet, View } from "react-native";
+import { FAB, Text } from "react-native-paper";
 
 export default function DashboardScreen() {
     const router = useRouter();
@@ -24,7 +24,7 @@ export default function DashboardScreen() {
         }, [refreshCounts]),
     );
 
-    const handleDeleteMatch = (matchId: number) => {
+    const handleDelete = (matchId: number) => {
         Alert.alert("Delete match", "Are you sure you want to delete this match and its player assignments?", [
             { text: "Cancel", style: "cancel" },
             {
@@ -38,122 +38,32 @@ export default function DashboardScreen() {
         ]);
     };
 
-    const handleStartMatch = async (matchId: number) => {
-        try {
-            const resumed = await ScoreEngine.resumeMatch(matchId);
-
-            if (resumed) {
-                router.push("/scoring");
-                return;
-            }
-
-            router.push(`/matches/${matchId}/start`);
-        } catch (error) {
-            Alert.alert("Unable to start", error instanceof Error ? error.message : "Unknown error");
-        }
-    };
-
     return (
         <AppContainer>
             <AppHeader />
-            <ScrollView style={styles.scheduledContainer} contentContainerStyle={styles.scheduledContent} showsVerticalScrollIndicator={false}>
+            <View style={{ padding: Spacing.defaultSpace }}>
+                <Text variant='titleLarge' style={{ marginBottom: Spacing.defaultSpace }}>
+                    Matches
+                </Text>
                 {scheduledMatches.length > 0 ? (
                     <>
-                        <Text variant='titleLarge' style={{ marginBottom: Spacing.defaultSpace }}>
-                            Matches
-                        </Text>
-                        {scheduledMatches.map((match) => (
-                            <View key={match.id} style={styles.matchCard}>
-                                {/* Teams */}
-                                <View style={styles.teamRow}>
-                                    <View style={styles.teamBlock}>
-                                        <View style={styles.logo}>
-                                            <Text style={styles.logoText}>🏏</Text>
-                                        </View>
-
-                                        <Text numberOfLines={2} style={styles.teamName}>
-                                            {match.team_name}
-                                        </Text>
-                                    </View>
-
-                                    <View style={styles.vsCircle}>
-                                        <Text style={styles.vsText}>VS</Text>
-                                    </View>
-
-                                    <View style={styles.teamBlock}>
-                                        <View style={styles.logo}>
-                                            <Text style={styles.logoText}>🏏</Text>
-                                        </View>
-
-                                        <Text numberOfLines={2} style={styles.teamName}>
-                                            {match.opponent_name}
-                                        </Text>
-                                    </View>
+                        <FlatList
+                            data={scheduledMatches}
+                            keyExtractor={(item) => item.id.toString()}
+                            contentContainerStyle={styles.listContent}
+                            ItemSeparatorComponent={() => <View style={styles.separator} />}
+                            ListEmptyComponent={
+                                <View style={styles.emptyContainer}>
+                                    <Text style={styles.emptyText}>No matches available.</Text>
                                 </View>
-
-                                <View style={styles.infoRow}>
-                                    <View style={styles.infoColumn}>
-                                        <Text style={styles.matchSubTitle}>
-                                            {match.match_type.toUpperCase()} • {match.format_overs} Overs
-                                        </Text>
-                                    </View>
-
-                                    <View style={styles.infoColumn}>
-                                        <Text style={styles.venue}>📍 {match.venue || "TBA"}</Text>
-                                    </View>
-                                </View>
-
-                                <View style={styles.divider} />
-
-                                <View style={styles.actionRow}>
-                                    <View style={styles.actionItem}>
-                                        <Button
-                                            mode='text'
-                                            icon='pencil'
-                                            contentStyle={styles.buttonContent}
-                                            style={styles.fullButton}
-                                            onPress={() => router.push(`/matches/${match.id}/edit`)}
-                                        >
-                                            Edit
-                                        </Button>
-                                    </View>
-
-                                    <View style={styles.verticalDivider} />
-
-                                    <View style={styles.actionItem}>
-                                        <Button
-                                            mode='text'
-                                            icon='delete'
-                                            textColor='#D32F2F'
-                                            contentStyle={styles.buttonContent}
-                                            style={styles.fullButton}
-                                            onPress={() => handleDeleteMatch(match.id)}
-                                        >
-                                            Delete
-                                        </Button>
-                                    </View>
-
-                                    <View style={styles.verticalDivider} />
-
-                                    <View style={styles.actionItem}>
-                                        <Button
-                                            mode='text'
-                                            icon='play'
-                                            contentStyle={styles.buttonContent}
-                                            style={styles.fullButton}
-                                            onPress={() => handleStartMatch(match.id)}
-                                        >
-                                            Start
-                                        </Button>
-                                    </View>
-                                </View>
-                            </View>
-                        ))}
+                            }
+                            renderItem={({ item }) => <MatchCard match={item} onDelete={handleDelete} />}
+                        />
                     </>
                 ) : (
                     <Text style={styles.noMatches}>No scheduled matches found.</Text>
                 )}
-            </ScrollView>
+            </View>
 
             <FAB icon='plus' label='New Match' size='small' onPress={() => router.push("/matches/add")} style={styles.fab} />
         </AppContainer>
@@ -186,7 +96,6 @@ const styles = StyleSheet.create({
     matchCard: {
         backgroundColor: Colors.white,
         borderRadius: 8,
-        elevation: 8,
         borderWidth: 1,
         borderColor: "#E5E7EB",
     },
@@ -203,24 +112,9 @@ const styles = StyleSheet.create({
         flex: 1,
     },
 
-    logo: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        backgroundColor: Colors.background,
-        justifyContent: "center",
-        alignItems: "center",
-        marginBottom: 10,
-    },
-
-    logoText: {
-        fontSize: 28,
-    },
-
     teamName: {
         textAlign: "center",
-        fontSize: 18,
-        fontWeight: "700",
+        fontSize: 16,
         paddingHorizontal: 8,
     },
 
@@ -231,20 +125,10 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         marginHorizontal: 8,
-        backgroundColor: Colors.secondary,
     },
 
     vsText: {
-        fontWeight: "700",
-        fontSize: 18,
-        color: Colors.white,
-    },
-
-    matchDate: {
-        textAlign: "center",
         fontSize: 16,
-        fontWeight: "700",
-        marginTop: 16,
     },
 
     divider: {
@@ -255,6 +139,8 @@ const styles = StyleSheet.create({
     actionRow: {
         flexDirection: "row",
         alignItems: "stretch",
+        borderTopWidth: 1,
+        borderColor: Colors.gray,
     },
 
     actionItem: {
@@ -263,7 +149,7 @@ const styles = StyleSheet.create({
 
     verticalDivider: {
         width: 1,
-        backgroundColor: Colors.darkGray,
+        backgroundColor: Colors.gray,
     },
 
     fullButton: {
@@ -278,8 +164,8 @@ const styles = StyleSheet.create({
     infoRow: {
         flexDirection: "row",
         alignItems: "center",
-        paddingHorizontal: 16,
-        paddingVertical: 12,
+        paddingHorizontal: Spacing.defaultSpace,
+        marginBottom: Spacing.defaultSpace,
     },
 
     infoColumn: {
@@ -297,5 +183,47 @@ const styles = StyleSheet.create({
         color: "#666",
         fontWeight: "600",
         textAlign: "right",
+    },
+
+    cardHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: Spacing.defaultSpace,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.gray,
+    },
+
+    tournament: {
+        marginTop: 4,
+        color: "#777",
+        fontSize: 12,
+    },
+
+    statusBadge: {
+        paddingHorizontal: 12,
+        paddingVertical: 5,
+        borderRadius: 6,
+    },
+
+    statusText: {
+        color: "#FFF",
+        fontSize: 11,
+        fontWeight: "700",
+    },
+    listContent: {
+        paddingBottom: 24,
+    },
+    separator: {
+        height: 5,
+    },
+    emptyContainer: {
+        marginTop: 40,
+        alignItems: "center",
+    },
+
+    emptyText: {
+        color: "#888",
+        fontSize: 16,
     },
 });

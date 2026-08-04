@@ -4,9 +4,9 @@ export const Colors = {
     accent: "#8BC34A",
     dark: "#0B1F0D",
 
-    success: "#43A047",
-    warning: "#FBC02D",
-    danger: "#E53935",
+    success: "#22C55E",     // Emerald
+    warning: "#F59E0B",     // Amber
+    danger: "#FF5252",      // Red
 
     background: "#F3F5F8",
     white: "#FFFFFF",

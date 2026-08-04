@@ -2,7 +2,7 @@ import { Colors } from "@/constants/colors";
 import SecureStorage from "@/services/SecureStorage";
 import { useRouter } from "expo-router";
 import * as React from "react";
-import { Alert, Image, StyleSheet, View } from "react-native";
+import { Alert, Image, Platform, StyleSheet, View } from "react-native";
 import { Appbar } from "react-native-paper";
 
 export default function AppHeader({ showBack }: { showBack?: boolean | string }) {
@@ -60,9 +60,20 @@ const styles = StyleSheet.create({
 
     header: {
         backgroundColor: Colors.primary,
-        elevation: 0,
-        height: 60,
+        height: Platform.OS === "ios" ? 70 : 60,
         paddingHorizontal: 0,
+
+        // Android shadow
+        elevation: 4,
+
+        // iOS shadow (bottom)
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 1,
+        },
+        shadowOpacity: 0.12,
+        shadowRadius: 2,
     },
 
     logoContainer: {
