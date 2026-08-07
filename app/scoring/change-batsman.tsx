@@ -80,6 +80,7 @@ export default function ChangeBatsmanScreen() {
 
     return (
         <ImageBackground source={require("@/assets/images/background-stadium.webp")} style={styles.background} resizeMode='cover'>
+            {/* <AppHeader /> */}
             <ScrollView contentContainerStyle={styles.container}>
                 <Card style={styles.card}>
                     <Card.Content style={styles.cardContent}>

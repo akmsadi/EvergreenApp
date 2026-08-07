@@ -35,8 +35,8 @@ export default function Matches() {
         ]);
     };
 
-    const handleDownload = () => {
-        SyncService.syncScheduledMatches();
+    const handleDownload = async () => {
+        await SyncService.syncScheduledMatches();
         setMatches(MatchRepository.getAll());
     };
 

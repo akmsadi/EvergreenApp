@@ -152,13 +152,10 @@ export default function StartMatchScreen() {
                     <Text style={styles.matchTitle}>
                         {match?.team_name ?? ""} vs {match?.opponent_name ?? ""}
                     </Text>
-                    <Text style={styles.matchDate}>{scheduledDateLabel}</Text>
                 </View>
 
                 <View style={styles.matchRow}>
-                    <Text style={styles.matchInfo}>
-                        {match?.match_type?.toUpperCase?.() ?? "MATCH"} • {match?.format_overs ?? "-"} Overs
-                    </Text>
+                    <Text style={styles.matchInfo}>Date: {scheduledDateLabel}</Text>
                     <Text style={styles.venue}>Venue: {match?.venue ?? "TBA"}</Text>
                 </View>
             </View>
@@ -292,8 +289,9 @@ const styles = StyleSheet.create({
 
     matchTitle: {
         flex: 1,
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: "600",
+        textAlign: "center",
     },
 
     matchDate: {
@@ -334,9 +332,9 @@ const styles = StyleSheet.create({
     },
 
     venue: {
-        fontSize: 14,
-        color: "#666",
-        fontWeight: "600",
+        // fontSize: 14,
+        // color: "#666",
+        // fontWeight: "600",
         textAlign: "right",
     },
 });

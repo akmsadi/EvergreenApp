@@ -26,13 +26,15 @@ export default function ScoringScreen() {
     const [bowlerStats, setBowlerStats] = useState<InningsBowlingModel | null>(null);
     const [thisOverBalls, setThisOverBalls] = useState<string[]>([]);
     const [noBallRunsInput, setNoBallRunsInput] = useState("");
-    const [wicketRunsInput, setWicketRunsInput] = useState("0");
+    const [wicketRunsInput, setWicketRunsInput] = useState("");
     const [autoSwapDisabled, setAutoSwapDisabled] = useState(!ScoreEngine.isAutoSwapEnabled());
 
     const targetSummary =
         scoreboard?.inningsNumber === 2 && scoreboard.targetRuns
             ? `Target: ${scoreboard.targetRuns} • Need ${Math.max(scoreboard.targetRuns - scoreboard.totalRuns, 0)} runs`
             : undefined;
+
+    const overLabel = ScoreEngine.isEndOfOver() ? "Last Over" : "This Over";
 
     useFocusEffect(
         useCallback(() => {
@@ -194,15 +196,13 @@ export default function ScoringScreen() {
 
     function getBowlerInningsMeta(bowlerStats: InningsBowlingModel | null) {
         if (!bowlerStats) {
-            return "(0/0 in 0.0 Over • 0.00 Econ)";
+            return "(0.0 Over • 0.00 Econ)";
         }
 
         const inningsBalls = bowlerStats.balls ?? 0;
         const inningsRuns = bowlerStats.runs ?? 0;
-        const inningsWickets = bowlerStats.wickets ?? 0;
         const economy = inningsBalls > 0 ? (inningsRuns / (inningsBalls / 6)).toFixed(2) : "0.00";
-
-        return `(${inningsWickets}/${inningsRuns} in ${formatOvers(inningsBalls)} Over  • ${economy} Econ)`;
+        return `(${formatOvers(inningsBalls)} Over  • ${economy} Econ)`;
     }
 
     return (
@@ -247,10 +247,7 @@ export default function ScoringScreen() {
                             <View style={styles.bowlerInfoBlock}>
                                 <Text style={styles.batsmanName}>{scoreboard?.bowlerName ?? "Unknown"}</Text>
                                 <Text style={styles.bowlerMeta}>{getBowlerInningsMeta(bowlerStats)}</Text>
-                                <Text style={styles.bowlerScore}>
-                                    {bowlerStats ? `${bowlerStats.wickets}/${bowlerStats.runs} ` : "0/0 "}
-                                    <Text style={styles.bowlerScoreMuted}>{`(${bowlerStats?.balls ?? 0})`}</Text>
-                                </Text>
+                                <Text style={styles.bowlerScore}>{bowlerStats ? `${bowlerStats.wickets}/${bowlerStats.runs} ` : "0/0"}</Text>
                             </View>
                         </View>
                     </View>
@@ -270,7 +267,7 @@ export default function ScoringScreen() {
                     </View>
 
                     <View style={styles.lastSixRow}>
-                        <Text style={styles.lastSixLabel}>This Over:</Text>
+                        <Text style={styles.lastSixLabel}>{overLabel}:</Text>
                         <View style={styles.lastSixBallsWrap}>
                             {(thisOverBalls.length > 0 ? thisOverBalls : ["-"]).map((ball, index) => (
                                 <View key={`${ball}-${index}`} style={styles.ballChip}>
@@ -306,7 +303,7 @@ export default function ScoringScreen() {
                         </Button>
 
                         <Button
-                            mode='contained-tonal'
+                            mode='contained'
                             icon='undo'
                             onPress={undo}
                             style={[styles.sideActionButton, { backgroundColor: Colors.danger }]}
@@ -365,7 +362,7 @@ export default function ScoringScreen() {
                             value={noBallRunsInput}
                             onChangeText={setNoBallRunsInput}
                             keyboardType='number-pad'
-                            placeholder='Completed Runs'
+                            placeholder='Runs'
                             style={styles.wicketInput}
                         />
                         <Button mode='contained' onPress={submitNoBall} style={styles.wicketButton} contentStyle={styles.wicketButtonContent}>
@@ -384,7 +381,7 @@ export default function ScoringScreen() {
                             onChangeText={setWicketRunsInput}
                             keyboardType='number-pad'
                             style={styles.wicketInput}
-                            placeholder='Completed Runs'
+                            placeholder='Runs'
                         />
 
                         <Button mode='contained' onPress={submitWicket} style={styles.wicketButton} contentStyle={styles.wicketButtonContent}>
@@ -618,7 +615,7 @@ const styles = StyleSheet.create({
 
     bowlerMeta: {
         fontSize: 12,
-        color: Colors.textSecondary,
+        // color: Colors.textSecondary,
         marginTop: 2,
         marginLeft: 5,
     },
@@ -630,7 +627,7 @@ const styles = StyleSheet.create({
     scoringArea: { flexDirection: "row", gap: 10, alignItems: "stretch" },
     sideActions: { flex: 3.5, gap: 8 },
     sideActionButton: { flex: 1, borderRadius: 8, justifyContent: "center" },
-    sideActionContent: { flex: 1 },
+    sideActionContent: { flex: 1, color: Colors.white },
     scoreGrid: { flex: 6.5, flexDirection: "row", flexWrap: "wrap", gap: 8 },
     scoreButton: { flexGrow: 1, flexBasis: "30%", minWidth: 0, minHeight: 44, borderRadius: 8, margin: 0 },
     scoreButtonContent: { minHeight: 44, paddingHorizontal: 0 },
